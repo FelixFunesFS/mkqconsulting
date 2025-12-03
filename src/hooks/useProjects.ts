@@ -1,0 +1,110 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Project, ProjectStatus } from '@/types/project';
+
+// Map database row to Project type
+const mapDbToProject = (row: any): Project => ({
+  id: row.id,
+  clientName: row.client_name,
+  businessName: row.business_name,
+  websiteUrl: row.website_url,
+  status: row.status as ProjectStatus,
+  progress: row.progress,
+  tasksCompleted: row.tasks_completed,
+  totalTasks: row.total_tasks,
+  startDate: row.start_date,
+  targetLaunchDate: row.target_launch_date,
+  monthlyRevenue: row.monthly_revenue ? Number(row.monthly_revenue) : undefined,
+  hostingProvider: row.hosting_provider,
+  notes: row.notes,
+});
+
+// Map Project to database insert/update
+const mapProjectToDb = (project: Partial<Project>) => ({
+  client_name: project.clientName,
+  business_name: project.businessName,
+  website_url: project.websiteUrl,
+  status: project.status,
+  progress: project.progress,
+  tasks_completed: project.tasksCompleted,
+  total_tasks: project.totalTasks,
+  start_date: project.startDate,
+  target_launch_date: project.targetLaunchDate,
+  monthly_revenue: project.monthlyRevenue,
+  hosting_provider: project.hostingProvider,
+  notes: project.notes,
+});
+
+export function useProjects() {
+  return useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data.map(mapDbToProject);
+    },
+  });
+}
+
+export function useCreateProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (project: Partial<Project>) => {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert(mapProjectToDb(project))
+        .select()
+        .single();
+
+      if (error) throw error;
+      return mapDbToProject(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+}
+
+export function useUpdateProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...project }: Partial<Project> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('projects')
+        .update(mapProjectToDb(project))
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return mapDbToProject(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+}
+
+export function useDeleteProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+}
