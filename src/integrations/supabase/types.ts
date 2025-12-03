@@ -14,7 +14,203 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      projects: {
+        Row: {
+          business_name: string
+          client_name: string
+          created_at: string
+          hosting_provider: string | null
+          id: string
+          monthly_revenue: number | null
+          notes: string | null
+          progress: number
+          start_date: string | null
+          status: Database["public"]["Enums"]["project_status"]
+          target_launch_date: string | null
+          tasks_completed: number
+          total_tasks: number
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          business_name: string
+          client_name: string
+          created_at?: string
+          hosting_provider?: string | null
+          id?: string
+          monthly_revenue?: number | null
+          notes?: string | null
+          progress?: number
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          target_launch_date?: string | null
+          tasks_completed?: number
+          total_tasks?: number
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          business_name?: string
+          client_name?: string
+          created_at?: string
+          hosting_provider?: string | null
+          id?: string
+          monthly_revenue?: number | null
+          notes?: string | null
+          progress?: number
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          target_launch_date?: string | null
+          tasks_completed?: number
+          total_tasks?: number
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      questionnaires: {
+        Row: {
+          accessibility_requirements: string | null
+          additional_notes: string | null
+          assumptions: string | null
+          brand_colors: string | null
+          brand_guidelines: string | null
+          budget_range: string | null
+          calls_to_action: string | null
+          color_preferences: string | null
+          company_name: string | null
+          competitors: string | null
+          content_ready: boolean | null
+          content_sections: string | null
+          created_at: string
+          customer_pain_points: string | null
+          decision_makers: string | null
+          design_style: string | null
+          domain_status: string | null
+          example_websites: string | null
+          existing_logo: boolean | null
+          geographic_reach: string | null
+          google_analytics: boolean | null
+          hosting_preference: string | null
+          id: string
+          image_sources: string | null
+          industry: string | null
+          limitations: string | null
+          main_products_services: string | null
+          maintenance_plan: string | null
+          mission_statement: string | null
+          pricing_display: string | null
+          primary_goals: string[] | null
+          privacy_policy_needed: boolean | null
+          project_id: string
+          required_features: string[] | null
+          social_media_links: string | null
+          target_demographics: string | null
+          target_keywords: string | null
+          terms_needed: boolean | null
+          timeline: string | null
+          unique_selling_points: string | null
+          updated_at: string
+          years_in_business: string | null
+        }
+        Insert: {
+          accessibility_requirements?: string | null
+          additional_notes?: string | null
+          assumptions?: string | null
+          brand_colors?: string | null
+          brand_guidelines?: string | null
+          budget_range?: string | null
+          calls_to_action?: string | null
+          color_preferences?: string | null
+          company_name?: string | null
+          competitors?: string | null
+          content_ready?: boolean | null
+          content_sections?: string | null
+          created_at?: string
+          customer_pain_points?: string | null
+          decision_makers?: string | null
+          design_style?: string | null
+          domain_status?: string | null
+          example_websites?: string | null
+          existing_logo?: boolean | null
+          geographic_reach?: string | null
+          google_analytics?: boolean | null
+          hosting_preference?: string | null
+          id?: string
+          image_sources?: string | null
+          industry?: string | null
+          limitations?: string | null
+          main_products_services?: string | null
+          maintenance_plan?: string | null
+          mission_statement?: string | null
+          pricing_display?: string | null
+          primary_goals?: string[] | null
+          privacy_policy_needed?: boolean | null
+          project_id: string
+          required_features?: string[] | null
+          social_media_links?: string | null
+          target_demographics?: string | null
+          target_keywords?: string | null
+          terms_needed?: boolean | null
+          timeline?: string | null
+          unique_selling_points?: string | null
+          updated_at?: string
+          years_in_business?: string | null
+        }
+        Update: {
+          accessibility_requirements?: string | null
+          additional_notes?: string | null
+          assumptions?: string | null
+          brand_colors?: string | null
+          brand_guidelines?: string | null
+          budget_range?: string | null
+          calls_to_action?: string | null
+          color_preferences?: string | null
+          company_name?: string | null
+          competitors?: string | null
+          content_ready?: boolean | null
+          content_sections?: string | null
+          created_at?: string
+          customer_pain_points?: string | null
+          decision_makers?: string | null
+          design_style?: string | null
+          domain_status?: string | null
+          example_websites?: string | null
+          existing_logo?: boolean | null
+          geographic_reach?: string | null
+          google_analytics?: boolean | null
+          hosting_preference?: string | null
+          id?: string
+          image_sources?: string | null
+          industry?: string | null
+          limitations?: string | null
+          main_products_services?: string | null
+          maintenance_plan?: string | null
+          mission_statement?: string | null
+          pricing_display?: string | null
+          primary_goals?: string[] | null
+          privacy_policy_needed?: boolean | null
+          project_id?: string
+          required_features?: string[] | null
+          social_media_links?: string | null
+          target_demographics?: string | null
+          target_keywords?: string | null
+          terms_needed?: boolean | null
+          timeline?: string | null
+          unique_selling_points?: string | null
+          updated_at?: string
+          years_in_business?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaires_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +219,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      project_status:
+        | "discovery"
+        | "design"
+        | "development"
+        | "review"
+        | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +351,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      project_status: [
+        "discovery",
+        "design",
+        "development",
+        "review",
+        "published",
+      ],
+    },
   },
 } as const

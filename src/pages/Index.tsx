@@ -2,17 +2,20 @@ import { useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 import { QuestionnaireForm } from '@/components/questionnaire/QuestionnaireForm';
-import { mockProjects } from '@/data/mockProjects';
+import { useProjects, useCreateProject, useUpdateProject } from '@/hooks/useProjects';
 import { Project, QuestionnaireData } from '@/types/project';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('dashboard');
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+
+  const { data: projects = [], isLoading } = useProjects();
+  const createProject = useCreateProject();
+  const updateProject = useUpdateProject();
 
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project);
@@ -20,7 +23,6 @@ const Index = () => {
 
   const handleEditProject = (project: Project) => {
     setSelectedProject(project);
-    // Could open edit modal here
   };
 
   const handleViewQuestionnaire = (project: Project) => {
@@ -33,35 +35,37 @@ const Index = () => {
     setShowNewProject(true);
   };
 
-  const handleQuestionnaireSubmit = (data: QuestionnaireData) => {
-    if (selectedProject) {
-      // Update existing project
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.id === selectedProject.id ? { ...p, questionnaire: data } : p
-        )
-      );
+  const handleQuestionnaireSubmit = async (data: QuestionnaireData) => {
+    try {
+      if (selectedProject) {
+        await updateProject.mutateAsync({
+          id: selectedProject.id,
+          businessName: data.businessName,
+        });
+        toast({
+          title: 'Questionnaire Updated',
+          description: `Questionnaire for ${selectedProject.businessName} has been updated.`,
+        });
+      } else {
+        await createProject.mutateAsync({
+          clientName: 'New Client',
+          businessName: data.businessName || 'New Business',
+          status: 'discovery',
+          progress: 5,
+          tasksCompleted: 1,
+          totalTasks: 20,
+          startDate: new Date().toISOString().split('T')[0],
+        });
+        toast({
+          title: 'Project Created',
+          description: `New project "${data.businessName}" has been created.`,
+        });
+      }
+    } catch (error) {
       toast({
-        title: 'Questionnaire Updated',
-        description: `Questionnaire for ${selectedProject.businessName} has been updated.`,
-      });
-    } else {
-      // Create new project
-      const newProject: Project = {
-        id: String(Date.now()),
-        clientName: 'New Client',
-        businessName: data.businessName || 'New Business',
-        status: 'discovery',
-        progress: 5,
-        tasksCompleted: 1,
-        totalTasks: 20,
-        startDate: new Date().toISOString().split('T')[0],
-        questionnaire: data,
-      };
-      setProjects((prev) => [...prev, newProject]);
-      toast({
-        title: 'Project Created',
-        description: `New project "${data.businessName}" has been created.`,
+        title: 'Error',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
       });
     }
     setShowNewProject(false);
@@ -76,6 +80,14 @@ const Index = () => {
       setShowNewProject(true);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Loading projects...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
