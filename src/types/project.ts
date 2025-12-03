@@ -15,6 +15,7 @@ export interface Project {
   notes?: string;
   monthlyRevenue?: number;
   hostingProvider?: string;
+  displayOrder?: number;
 }
 
 export interface QuestionnaireData {

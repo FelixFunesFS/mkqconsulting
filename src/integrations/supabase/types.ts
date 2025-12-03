@@ -19,6 +19,7 @@ export type Database = {
           business_name: string
           client_name: string
           created_at: string
+          display_order: number | null
           hosting_provider: string | null
           id: string
           monthly_revenue: number | null
@@ -36,6 +37,7 @@ export type Database = {
           business_name: string
           client_name: string
           created_at?: string
+          display_order?: number | null
           hosting_provider?: string | null
           id?: string
           monthly_revenue?: number | null
@@ -53,6 +55,7 @@ export type Database = {
           business_name?: string
           client_name?: string
           created_at?: string
+          display_order?: number | null
           hosting_provider?: string | null
           id?: string
           monthly_revenue?: number | null
@@ -291,6 +294,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      task_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          estimated_hours: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phase: string
+          priority: Database["public"]["Enums"]["task_priority"] | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          estimated_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phase?: string
+          priority?: Database["public"]["Enums"]["task_priority"] | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          estimated_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phase?: string
+          priority?: Database["public"]["Enums"]["task_priority"] | null
+        }
+        Relationships: []
       }
       tasks: {
         Row: {

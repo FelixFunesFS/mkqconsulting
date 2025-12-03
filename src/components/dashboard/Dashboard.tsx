@@ -2,6 +2,7 @@ import { Project } from '@/types/project';
 import { StatsCard } from './StatsCard';
 import { ProjectCard } from './ProjectCard';
 import { ProjectPipeline } from './ProjectPipeline';
+import { DraggableProjectGrid } from './DraggableProjectGrid';
 import { 
   Globe, 
   Code2, 
@@ -83,27 +84,22 @@ export function Dashboard({
 
       {/* Projects Grid */}
       <div className="space-y-6">
-        {/* In Development */}
+        {/* In Development - Draggable */}
         {inDevelopment.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-5 w-5 text-primary" />
               <h2 className="font-display text-xl font-semibold">In Development</h2>
               <span className="text-sm text-muted-foreground">({inDevelopment.length})</span>
+              <span className="text-xs text-muted-foreground ml-2">• Drag to reorder</span>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {inDevelopment.map((project, index) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onClick={() => onViewTasks(project)}
-                  onEdit={() => onEditProject(project)}
-                  onViewQuestionnaire={() => onViewQuestionnaire(project)}
-                  onViewTasks={() => onViewTasks(project)}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                />
-              ))}
-            </div>
+            <DraggableProjectGrid
+              projects={inDevelopment}
+              onProjectClick={onProjectClick}
+              onEditProject={onEditProject}
+              onViewQuestionnaire={onViewQuestionnaire}
+              onViewTasks={onViewTasks}
+            />
           </div>
         )}
 
