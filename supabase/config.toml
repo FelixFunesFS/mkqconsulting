@@ -1,1 +1,4 @@
 project_id = "htyvgarziudtsfyxxtgw"
+
+[functions.generate-tasks]
+verify_jwt = false

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 import { QuestionnaireForm } from '@/components/questionnaire/QuestionnaireForm';
+import { ProjectTasksDialog } from '@/components/tasks/ProjectTasksDialog';
 import { useProjects, useCreateProject, useUpdateProject } from '@/hooks/useProjects';
 import { useQuestionnaire, useUpsertQuestionnaire } from '@/hooks/useQuestionnaires';
 import { Project, QuestionnaireData } from '@/types/project';
@@ -14,6 +15,7 @@ const Index = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showNewProject, setShowNewProject] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
 
   const { data: projects = [], isLoading } = useProjects();
   const createProject = useCreateProject();
@@ -36,6 +38,11 @@ const Index = () => {
   const handleViewQuestionnaire = (project: Project) => {
     setSelectedProject(project);
     setShowQuestionnaire(true);
+  };
+
+  const handleViewTasks = (project: Project) => {
+    setSelectedProject(project);
+    setShowTasks(true);
   };
 
   const handleNewProject = () => {
@@ -123,6 +130,7 @@ const Index = () => {
               onProjectClick={handleProjectClick}
               onEditProject={handleEditProject}
               onViewQuestionnaire={handleViewQuestionnaire}
+              onViewTasks={handleViewTasks}
             />
           )}
           
@@ -132,6 +140,7 @@ const Index = () => {
               onProjectClick={handleProjectClick}
               onEditProject={handleEditProject}
               onViewQuestionnaire={handleViewQuestionnaire}
+              onViewTasks={handleViewTasks}
             />
           )}
 
@@ -150,6 +159,16 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      {/* Tasks Dialog */}
+      <ProjectTasksDialog
+        project={selectedProject}
+        open={showTasks}
+        onOpenChange={(open) => {
+          setShowTasks(open);
+          if (!open) setSelectedProject(null);
+        }}
+      />
 
       {/* New Project / Questionnaire Modal */}
       <Dialog open={showNewProject || showQuestionnaire} onOpenChange={(open) => {

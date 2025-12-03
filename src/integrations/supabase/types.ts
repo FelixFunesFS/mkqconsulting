@@ -292,6 +292,65 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          estimated_hours: number | null
+          id: string
+          phase: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          questionnaire_field: string | null
+          source: Database["public"]["Enums"]["task_source"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          phase?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          questionnaire_field?: string | null
+          source?: Database["public"]["Enums"]["task_source"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          phase?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id?: string
+          questionnaire_field?: string | null
+          source?: Database["public"]["Enums"]["task_source"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -306,6 +365,9 @@ export type Database = {
         | "development"
         | "review"
         | "published"
+      task_priority: "low" | "medium" | "high" | "critical"
+      task_source: "ai_generated" | "manual" | "template"
+      task_status: "pending" | "in_progress" | "completed" | "blocked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -440,6 +502,9 @@ export const Constants = {
         "review",
         "published",
       ],
+      task_priority: ["low", "medium", "high", "critical"],
+      task_source: ["ai_generated", "manual", "template"],
+      task_status: ["pending", "in_progress", "completed", "blocked"],
     },
   },
 } as const
