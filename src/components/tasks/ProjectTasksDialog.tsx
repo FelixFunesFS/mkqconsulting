@@ -168,6 +168,7 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
             ) : (
               <TaskList
                 tasks={tasks}
+                projectId={project?.id || ''}
                 projectPhase={project?.status || 'discovery'}
                 isGenerating={generateTasks.isPending}
                 onStatusChange={handleStatusChange}

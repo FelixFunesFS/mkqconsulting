@@ -4,11 +4,14 @@ import { TaskCard } from './TaskCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { statusLabels as phaseLabels } from '@/types/project';
-import { Plus, Sparkles, Loader2 } from 'lucide-react';
+import { Plus, Sparkles, Loader2, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTaskTemplates, useApplyTemplates } from '@/hooks/useTaskTemplates';
+import { toast } from 'sonner';
 
 interface TaskListProps {
   tasks: Task[];
+  projectId: string;
   projectPhase: string;
   isGenerating?: boolean;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
@@ -22,6 +25,7 @@ const phases = ['discovery', 'design', 'development', 'review', 'published'] as 
 
 export function TaskList({
   tasks,
+  projectId,
   projectPhase,
   isGenerating,
   onStatusChange,
@@ -31,6 +35,8 @@ export function TaskList({
   onAddTask,
 }: TaskListProps) {
   const [activePhase, setActivePhase] = useState<string>(projectPhase);
+  const { data: templates } = useTaskTemplates();
+  const applyTemplates = useApplyTemplates();
 
   const tasksByPhase = phases.reduce((acc, phase) => {
     acc[phase] = tasks.filter((t) => t.phase === phase);
@@ -43,6 +49,34 @@ export function TaskList({
     return { total: phaseTasks.length, completed };
   };
 
+  const handleApplyChecklist = () => {
+    if (!templates || templates.length === 0) {
+      toast.error('No templates available');
+      return;
+    }
+
+    applyTemplates.mutate(
+      { projectId, templates },
+      {
+        onSuccess: (result) => {
+          if (result.added > 0) {
+            toast.success(`Added ${result.added} pre-launch checklist items`);
+            // Switch to review tab to show the new tasks
+            setActivePhase('review');
+          } else {
+            toast.info('All checklist items already exist');
+          }
+          if (result.skipped > 0 && result.added > 0) {
+            toast.info(`${result.skipped} items were already present`);
+          }
+        },
+        onError: () => {
+          toast.error('Failed to apply checklist');
+        },
+      }
+    );
+  };
+
   if (tasks.length === 0 && !isGenerating) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -53,7 +87,7 @@ export function TaskList({
         <p className="text-muted-foreground text-sm mb-6 max-w-md">
           Generate tasks automatically using AI based on the project questionnaire, or add tasks manually.
         </p>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 justify-center">
           {onGenerateTasks && (
             <Button onClick={onGenerateTasks} disabled={isGenerating}>
               <Sparkles className="h-4 w-4 mr-2" />
@@ -66,6 +100,18 @@ export function TaskList({
               Add Manually
             </Button>
           )}
+          <Button
+            variant="outline"
+            onClick={handleApplyChecklist}
+            disabled={applyTemplates.isPending}
+          >
+            {applyTemplates.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <ClipboardCheck className="h-4 w-4 mr-2" />
+            )}
+            Pre-Launch Checklist
+          </Button>
         </div>
       </div>
     );
@@ -73,8 +119,8 @@ export function TaskList({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {onGenerateTasks && (
             <Button 
               variant="outline" 
@@ -96,6 +142,19 @@ export function TaskList({
               Add Task
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleApplyChecklist}
+            disabled={applyTemplates.isPending}
+          >
+            {applyTemplates.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <ClipboardCheck className="h-4 w-4 mr-2" />
+            )}
+            Pre-Launch Checklist
+          </Button>
         </div>
         <p className="text-sm text-muted-foreground">
           {tasks.filter((t) => t.status === 'completed').length} of {tasks.length} completed

@@ -17,6 +17,7 @@ const mapDbToProject = (row: any): Project => ({
   monthlyRevenue: row.monthly_revenue ? Number(row.monthly_revenue) : undefined,
   hostingProvider: row.hosting_provider,
   notes: row.notes,
+  displayOrder: row.display_order,
 });
 
 // Map Project to database insert/update
@@ -33,6 +34,7 @@ const mapProjectToDb = (project: Partial<Project>) => ({
   monthly_revenue: project.monthlyRevenue,
   hosting_provider: project.hostingProvider,
   notes: project.notes,
+  display_order: project.displayOrder,
 });
 
 export function useProjects() {
@@ -42,6 +44,7 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
+        .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -84,6 +87,29 @@ export function useUpdateProject() {
 
       if (error) throw error;
       return mapDbToProject(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+}
+
+export function useUpdateProjectOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orders: { id: string; displayOrder: number }[]) => {
+      // Update each project's display_order
+      const updates = orders.map(({ id, displayOrder }) =>
+        supabase
+          .from('projects')
+          .update({ display_order: displayOrder })
+          .eq('id', id)
+      );
+
+      const results = await Promise.all(updates);
+      const error = results.find((r) => r.error)?.error;
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
