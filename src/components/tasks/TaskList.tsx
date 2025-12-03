@@ -12,6 +12,7 @@ interface TaskListProps {
   projectPhase: string;
   isGenerating?: boolean;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
+  onEdit?: (task: Task) => void;
   onDelete?: (taskId: string) => void;
   onGenerateTasks?: () => void;
   onAddTask?: () => void;
@@ -24,6 +25,7 @@ export function TaskList({
   projectPhase,
   isGenerating,
   onStatusChange,
+  onEdit,
   onDelete,
   onGenerateTasks,
   onAddTask,
@@ -137,6 +139,7 @@ export function TaskList({
                     key={task.id}
                     task={task}
                     onStatusChange={onStatusChange}
+                    onEdit={onEdit}
                     onDelete={onDelete}
                   />
                 ))}
