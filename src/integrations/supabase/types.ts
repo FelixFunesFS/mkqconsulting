@@ -71,134 +71,215 @@ export type Database = {
       questionnaires: {
         Row: {
           accessibility_requirements: string | null
+          acknowledgements_accepted: boolean | null
           additional_notes: string | null
           assumptions: string | null
+          best_sellers: string | null
           brand_colors: string | null
+          brand_fonts: string | null
           brand_guidelines: string | null
+          brand_personality: string | null
           budget_range: string | null
+          business_overview: string | null
           calls_to_action: string | null
           color_preferences: string | null
           company_name: string | null
           competitors: string | null
+          compliance_needs: string | null
           content_ready: boolean | null
           content_sections: string | null
+          core_values: string | null
           created_at: string
+          critical_deadlines: string | null
           customer_pain_points: string | null
+          customer_sources: string | null
           decision_makers: string | null
+          design_elements: string | null
           design_style: string | null
+          disliked_websites: string | null
           domain_status: string | null
           example_websites: string | null
           existing_logo: boolean | null
+          existing_marketing: string | null
+          expected_traffic: string | null
+          future_addons: string | null
           geographic_reach: string | null
           google_analytics: boolean | null
+          has_google_business: boolean | null
           hosting_preference: string | null
           id: string
           image_sources: string | null
           industry: string | null
+          integrations_needed: string | null
+          launch_date: string | null
+          liked_websites: string | null
           limitations: string | null
           main_products_services: string | null
           maintenance_plan: string | null
           mission_statement: string | null
+          needs_email: boolean | null
+          open_to_stock: boolean | null
           pricing_display: string | null
           primary_goals: string[] | null
+          priority: string | null
           privacy_policy_needed: boolean | null
           project_id: string
           required_features: string[] | null
+          seasonal_offerings: string | null
+          secondary_audience: string | null
           social_media_links: string | null
+          tagline: string | null
           target_demographics: string | null
           target_keywords: string | null
+          target_locations: string | null
           terms_needed: boolean | null
           timeline: string | null
           unique_selling_points: string | null
           updated_at: string
+          vision_statement: string | null
+          wants_ongoing_seo: boolean | null
           years_in_business: string | null
         }
         Insert: {
           accessibility_requirements?: string | null
+          acknowledgements_accepted?: boolean | null
           additional_notes?: string | null
           assumptions?: string | null
+          best_sellers?: string | null
           brand_colors?: string | null
+          brand_fonts?: string | null
           brand_guidelines?: string | null
+          brand_personality?: string | null
           budget_range?: string | null
+          business_overview?: string | null
           calls_to_action?: string | null
           color_preferences?: string | null
           company_name?: string | null
           competitors?: string | null
+          compliance_needs?: string | null
           content_ready?: boolean | null
           content_sections?: string | null
+          core_values?: string | null
           created_at?: string
+          critical_deadlines?: string | null
           customer_pain_points?: string | null
+          customer_sources?: string | null
           decision_makers?: string | null
+          design_elements?: string | null
           design_style?: string | null
+          disliked_websites?: string | null
           domain_status?: string | null
           example_websites?: string | null
           existing_logo?: boolean | null
+          existing_marketing?: string | null
+          expected_traffic?: string | null
+          future_addons?: string | null
           geographic_reach?: string | null
           google_analytics?: boolean | null
+          has_google_business?: boolean | null
           hosting_preference?: string | null
           id?: string
           image_sources?: string | null
           industry?: string | null
+          integrations_needed?: string | null
+          launch_date?: string | null
+          liked_websites?: string | null
           limitations?: string | null
           main_products_services?: string | null
           maintenance_plan?: string | null
           mission_statement?: string | null
+          needs_email?: boolean | null
+          open_to_stock?: boolean | null
           pricing_display?: string | null
           primary_goals?: string[] | null
+          priority?: string | null
           privacy_policy_needed?: boolean | null
           project_id: string
           required_features?: string[] | null
+          seasonal_offerings?: string | null
+          secondary_audience?: string | null
           social_media_links?: string | null
+          tagline?: string | null
           target_demographics?: string | null
           target_keywords?: string | null
+          target_locations?: string | null
           terms_needed?: boolean | null
           timeline?: string | null
           unique_selling_points?: string | null
           updated_at?: string
+          vision_statement?: string | null
+          wants_ongoing_seo?: boolean | null
           years_in_business?: string | null
         }
         Update: {
           accessibility_requirements?: string | null
+          acknowledgements_accepted?: boolean | null
           additional_notes?: string | null
           assumptions?: string | null
+          best_sellers?: string | null
           brand_colors?: string | null
+          brand_fonts?: string | null
           brand_guidelines?: string | null
+          brand_personality?: string | null
           budget_range?: string | null
+          business_overview?: string | null
           calls_to_action?: string | null
           color_preferences?: string | null
           company_name?: string | null
           competitors?: string | null
+          compliance_needs?: string | null
           content_ready?: boolean | null
           content_sections?: string | null
+          core_values?: string | null
           created_at?: string
+          critical_deadlines?: string | null
           customer_pain_points?: string | null
+          customer_sources?: string | null
           decision_makers?: string | null
+          design_elements?: string | null
           design_style?: string | null
+          disliked_websites?: string | null
           domain_status?: string | null
           example_websites?: string | null
           existing_logo?: boolean | null
+          existing_marketing?: string | null
+          expected_traffic?: string | null
+          future_addons?: string | null
           geographic_reach?: string | null
           google_analytics?: boolean | null
+          has_google_business?: boolean | null
           hosting_preference?: string | null
           id?: string
           image_sources?: string | null
           industry?: string | null
+          integrations_needed?: string | null
+          launch_date?: string | null
+          liked_websites?: string | null
           limitations?: string | null
           main_products_services?: string | null
           maintenance_plan?: string | null
           mission_statement?: string | null
+          needs_email?: boolean | null
+          open_to_stock?: boolean | null
           pricing_display?: string | null
           primary_goals?: string[] | null
+          priority?: string | null
           privacy_policy_needed?: boolean | null
           project_id?: string
           required_features?: string[] | null
+          seasonal_offerings?: string | null
+          secondary_audience?: string | null
           social_media_links?: string | null
+          tagline?: string | null
           target_demographics?: string | null
           target_keywords?: string | null
+          target_locations?: string | null
           terms_needed?: boolean | null
           timeline?: string | null
           unique_selling_points?: string | null
           updated_at?: string
+          vision_statement?: string | null
+          wants_ongoing_seo?: boolean | null
           years_in_business?: string | null
         }
         Relationships: [
