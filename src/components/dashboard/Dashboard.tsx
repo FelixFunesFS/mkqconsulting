@@ -16,13 +16,15 @@ interface DashboardProps {
   onProjectClick: (project: Project) => void;
   onEditProject: (project: Project) => void;
   onViewQuestionnaire: (project: Project) => void;
+  onViewTasks: (project: Project) => void;
 }
 
 export function Dashboard({ 
   projects, 
   onProjectClick, 
   onEditProject, 
-  onViewQuestionnaire 
+  onViewQuestionnaire,
+  onViewTasks,
 }: DashboardProps) {
   const publishedProjects = projects.filter((p) => p.status === 'published');
   const inDevelopment = projects.filter((p) => p.status !== 'published');
@@ -94,9 +96,10 @@ export function Dashboard({
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  onClick={() => onProjectClick(project)}
+                  onClick={() => onViewTasks(project)}
                   onEdit={() => onEditProject(project)}
                   onViewQuestionnaire={() => onViewQuestionnaire(project)}
+                  onViewTasks={() => onViewTasks(project)}
                   style={{ animationDelay: `${index * 50}ms` }}
                 />
               ))}
@@ -117,9 +120,10 @@ export function Dashboard({
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  onClick={() => onProjectClick(project)}
+                  onClick={() => onViewTasks(project)}
                   onEdit={() => onEditProject(project)}
                   onViewQuestionnaire={() => onViewQuestionnaire(project)}
+                  onViewTasks={() => onViewTasks(project)}
                   style={{ animationDelay: `${index * 50}ms` }}
                 />
               ))}

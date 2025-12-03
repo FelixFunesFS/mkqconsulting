@@ -3,11 +3,12 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2 } from 'lucide-react';
+import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -16,6 +17,7 @@ interface ProjectCardProps {
   onClick?: () => void;
   onEdit?: () => void;
   onViewQuestionnaire?: () => void;
+  onViewTasks?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -25,6 +27,7 @@ export function ProjectCard({
   onClick,
   onEdit,
   onViewQuestionnaire,
+  onViewTasks,
   className,
   style,
 }: ProjectCardProps) {
@@ -56,11 +59,16 @@ export function ProjectCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(); }}>
-              Edit Project
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewTasks?.(); }}>
+              <ListTodo className="mr-2 h-4 w-4" />
+              View Tasks
             </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewQuestionnaire?.(); }}>
               View Questionnaire
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(); }}>
+              Edit Project
             </DropdownMenuItem>
             {project.websiteUrl && (
               <DropdownMenuItem asChild>
