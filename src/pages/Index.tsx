@@ -3,9 +3,11 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 import { QuestionnaireForm } from '@/components/questionnaire/QuestionnaireForm';
 import { useProjects, useCreateProject, useUpdateProject } from '@/hooks/useProjects';
+import { useQuestionnaire, useUpsertQuestionnaire } from '@/hooks/useQuestionnaires';
 import { Project, QuestionnaireData } from '@/types/project';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -16,6 +18,12 @@ const Index = () => {
   const { data: projects = [], isLoading } = useProjects();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
+  const upsertQuestionnaire = useUpsertQuestionnaire();
+  
+  // Fetch questionnaire data when viewing/editing
+  const { data: questionnaireData, isLoading: isQuestionnaireLoading } = useQuestionnaire(
+    (showQuestionnaire || showNewProject) && selectedProject?.id ? selectedProject.id : undefined
+  );
 
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project);
@@ -38,16 +46,22 @@ const Index = () => {
   const handleQuestionnaireSubmit = async (data: QuestionnaireData) => {
     try {
       if (selectedProject) {
+        // Update existing project and questionnaire
         await updateProject.mutateAsync({
           id: selectedProject.id,
           businessName: data.businessName,
+        });
+        await upsertQuestionnaire.mutateAsync({
+          projectId: selectedProject.id,
+          data,
         });
         toast({
           title: 'Questionnaire Updated',
           description: `Questionnaire for ${selectedProject.businessName} has been updated.`,
         });
       } else {
-        await createProject.mutateAsync({
+        // Create new project and questionnaire
+        const newProject = await createProject.mutateAsync({
           clientName: 'New Client',
           businessName: data.businessName || 'New Business',
           status: 'discovery',
@@ -55,6 +69,10 @@ const Index = () => {
           tasksCompleted: 1,
           totalTasks: 20,
           startDate: new Date().toISOString().split('T')[0],
+        });
+        await upsertQuestionnaire.mutateAsync({
+          projectId: newProject.id,
+          data,
         });
         toast({
           title: 'Project Created',
@@ -150,15 +168,21 @@ const Index = () => {
               }
             </DialogTitle>
           </DialogHeader>
-          <QuestionnaireForm
-            initialData={selectedProject?.questionnaire}
-            onSubmit={handleQuestionnaireSubmit}
-            onCancel={() => {
-              setShowNewProject(false);
-              setShowQuestionnaire(false);
-              setSelectedProject(null);
-            }}
-          />
+          {isQuestionnaireLoading && selectedProject ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <QuestionnaireForm
+              initialData={questionnaireData}
+              onSubmit={handleQuestionnaireSubmit}
+              onCancel={() => {
+                setShowNewProject(false);
+                setShowQuestionnaire(false);
+                setSelectedProject(null);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
