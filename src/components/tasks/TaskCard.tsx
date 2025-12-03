@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Clock, MoreVertical, Trash2 } from 'lucide-react';
+import { Clock, MoreVertical, Trash2, Pencil } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +15,11 @@ import {
 interface TaskCardProps {
   task: Task;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
+  onEdit?: (task: Task) => void;
   onDelete?: (taskId: string) => void;
 }
 
-export function TaskCard({ task, onStatusChange, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) {
   const isCompleted = task.status === 'completed';
 
   const handleToggleComplete = () => {
@@ -57,6 +58,15 @@ export function TaskCard({ task, onStatusChange, onDelete }: TaskCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {onEdit && (
+                  <>
+                    <DropdownMenuItem onClick={() => onEdit(task)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Task
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem onClick={() => handleStatusChange('pending')}>
                   Mark as To Do
                 </DropdownMenuItem>

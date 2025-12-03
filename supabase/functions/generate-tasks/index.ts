@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { projectId, questionnaire, projectName, currentPhase } = await req.json();
+    const { projectId, questionnaire, projectName, currentPhase, mode = 'regenerate' } = await req.json();
     
-    console.log('Generating tasks for project:', projectId, projectName);
+    console.log('Generating tasks for project:', projectId, projectName, 'mode:', mode);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -247,16 +247,21 @@ Generate a JSON array of tasks. Return ONLY the JSON array, no other text. Examp
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Delete existing AI-generated tasks for this project
-    const { error: deleteError } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('project_id', projectId)
-      .eq('source', 'ai_generated');
+    // Handle different modes for task management
+    if (mode === 'regenerate') {
+      // Delete only PENDING AI-generated tasks, preserve completed ones
+      const { error: deleteError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('project_id', projectId)
+        .eq('source', 'ai_generated')
+        .in('status', ['pending', 'in_progress', 'blocked']);
 
-    if (deleteError) {
-      console.error('Error deleting old tasks:', deleteError);
+      if (deleteError) {
+        console.error('Error deleting old tasks:', deleteError);
+      }
     }
+    // For 'add_new' mode, we don't delete anything - just add new tasks
 
     // Insert new tasks
     const tasksToInsert = tasks.map((task: any) => ({
@@ -281,10 +286,15 @@ Generate a JSON array of tasks. Return ONLY the JSON array, no other text. Examp
       throw new Error('Failed to save tasks to database');
     }
 
-    // Update project's total_tasks count
+    // Get total task count for the project and update
+    const { count: totalTaskCount } = await supabase
+      .from('tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('project_id', projectId);
+
     const { error: updateError } = await supabase
       .from('projects')
-      .update({ total_tasks: insertedTasks.length })
+      .update({ total_tasks: totalTaskCount || insertedTasks.length })
       .eq('id', projectId);
 
     if (updateError) {

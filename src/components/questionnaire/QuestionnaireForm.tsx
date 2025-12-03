@@ -786,7 +786,7 @@ export function QuestionnaireForm({ initialData, onSubmit, onCancel }: Questionn
           {currentSection === sections.length ? (
             <Button onClick={handleSubmit} disabled={!data.acknowledgementsAccepted}>
               <Sparkles className="h-4 w-4 mr-2" />
-              Submit Questionnaire
+              {initialData && Object.keys(initialData).length > 0 ? 'Save Changes' : 'Submit Questionnaire'}
             </Button>
           ) : (
             <Button onClick={() => setCurrentSection((prev) => Math.min(sections.length, prev + 1))}>

@@ -169,14 +169,16 @@ export function useGenerateTasks() {
       questionnaire,
       projectName,
       currentPhase,
+      mode = 'regenerate',
     }: {
       projectId: string;
       questionnaire: any;
       projectName: string;
       currentPhase: string;
+      mode?: 'regenerate' | 'add_new';
     }) => {
       const { data, error } = await supabase.functions.invoke('generate-tasks', {
-        body: { projectId, questionnaire, projectName, currentPhase },
+        body: { projectId, questionnaire, projectName, currentPhase, mode },
       });
 
       if (error) throw error;
