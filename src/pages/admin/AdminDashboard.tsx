@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AdminSidebar } from '@/components/layout/AdminSidebar';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 import { ProjectDialog } from '@/components/projects/ProjectDialog';
+import { ProjectEditDialog } from '@/components/projects/ProjectEditDialog';
 import { ProjectTasksDialog } from '@/components/tasks/ProjectTasksDialog';
 import { useProjects } from '@/hooks/useProjects';
 import { useQuestionnaire, useUpsertQuestionnaire } from '@/hooks/useQuestionnaires';
@@ -15,6 +16,7 @@ export default function AdminDashboard() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { data: projects = [], isLoading } = useProjects();
   const upsertQuestionnaire = useUpsertQuestionnaire();
@@ -40,13 +42,19 @@ export default function AdminDashboard() {
         <Dashboard
           projects={projects}
           onProjectClick={(p) => { setSelectedProject(p); setShowTasks(true); }}
-          onEditProject={(p) => setSelectedProject(p)}
+          onEditProject={(p) => { setSelectedProject(p); setShowEditDialog(true); }}
           onViewQuestionnaire={(p) => { setSelectedProject(p); setShowQuestionnaire(true); }}
           onViewTasks={(p) => { setSelectedProject(p); setShowTasks(true); }}
         />
       </main>
       
       <ProjectDialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen} />
+      
+      <ProjectEditDialog
+        project={selectedProject}
+        open={showEditDialog}
+        onOpenChange={(open) => { setShowEditDialog(open); if (!open) setSelectedProject(null); }}
+      />
       
       <ProjectTasksDialog
         project={selectedProject}
