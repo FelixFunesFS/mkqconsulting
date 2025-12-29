@@ -20,6 +20,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import ClientDashboard from "./pages/portal/ClientDashboard";
 import ClientProject from "./pages/portal/ClientProject";
 import ClientQuestionnaire from "./pages/portal/ClientQuestionnaire";
+import ClientAccount from "./pages/portal/ClientAccount";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,11 @@ const App = () => (
           <Route path="/portal/questionnaire/:id" element={
             <ProtectedRoute requiredRole="client">
               <ClientQuestionnaire />
+            </ProtectedRoute>
+          } />
+          <Route path="/portal/account" element={
+            <ProtectedRoute requiredRole="client">
+              <ClientAccount />
             </ProtectedRoute>
           } />
 
