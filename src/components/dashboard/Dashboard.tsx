@@ -18,6 +18,7 @@ interface DashboardProps {
   onEditProject: (project: Project) => void;
   onViewQuestionnaire: (project: Project) => void;
   onViewTasks: (project: Project) => void;
+  onViewDocuments: (project: Project) => void;
 }
 
 export function Dashboard({ 
@@ -26,6 +27,7 @@ export function Dashboard({
   onEditProject, 
   onViewQuestionnaire,
   onViewTasks,
+  onViewDocuments,
 }: DashboardProps) {
   const publishedProjects = projects.filter((p) => p.status === 'published');
   const inDevelopment = projects.filter((p) => p.status !== 'published');
@@ -99,6 +101,7 @@ export function Dashboard({
               onEditProject={onEditProject}
               onViewQuestionnaire={onViewQuestionnaire}
               onViewTasks={onViewTasks}
+              onViewDocuments={onViewDocuments}
             />
           </div>
         )}
@@ -120,6 +123,7 @@ export function Dashboard({
                   onEdit={() => onEditProject(project)}
                   onViewQuestionnaire={() => onViewQuestionnaire(project)}
                   onViewTasks={() => onViewTasks(project)}
+                  onViewDocuments={() => onViewDocuments(project)}
                   style={{ animationDelay: `${index * 50}ms` }}
                 />
               ))}

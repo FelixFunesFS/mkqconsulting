@@ -4,16 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useProjects } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
+import { useDocuments } from '@/hooks/useDocuments';
 import { statusLabels, statusColors } from '@/types/project';
-import { ArrowLeft, CheckCircle2, Clock, Loader2, FileText } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, Loader2, FileText, Upload } from 'lucide-react';
+import { DocumentList } from '@/components/documents/DocumentList';
+import { DocumentUploader } from '@/components/documents/DocumentUploader';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ClientProject() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: projects, isLoading: projectsLoading } = useProjects();
   const { data: tasks } = useTasks(id);
+  const { data: documents, isLoading: documentsLoading } = useDocuments(id || '');
   
   const project = projects?.find(p => p.id === id);
 
@@ -88,18 +94,62 @@ export default function ClientProject() {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" /> Questionnaire
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => navigate(`/portal/questionnaire/${project.id}`)}>
-              View & Edit Questionnaire
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" /> Questionnaire
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => navigate(`/portal/questionnaire/${project.id}`)}>
+                View & Edit Questionnaire
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" /> Documents
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="documents">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="documents">View Documents</TabsTrigger>
+                  <TabsTrigger value="upload">
+                    <Upload className="h-4 w-4 mr-1" /> Upload
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="documents">
+                  {documentsLoading ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : (
+                    <ScrollArea className="h-[300px] pr-4">
+                      <DocumentList
+                        documents={documents || []}
+                        projectId={project.id}
+                        isAdmin={false}
+                        groupByCategory={true}
+                      />
+                    </ScrollArea>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="upload">
+                  <DocumentUploader
+                    projectId={project.id}
+                    isAdmin={false}
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );

@@ -45,6 +45,11 @@ const Index = () => {
     setShowTasks(true);
   };
 
+  const handleViewDocuments = (project: Project) => {
+    // Documents not implemented in Index.tsx yet - placeholder
+    console.log('View documents for', project.id);
+  };
+
   const handleNewProject = () => {
     setSelectedProject(null);
     setShowNewProject(true);
@@ -131,6 +136,7 @@ const Index = () => {
               onEditProject={handleEditProject}
               onViewQuestionnaire={handleViewQuestionnaire}
               onViewTasks={handleViewTasks}
+              onViewDocuments={handleViewDocuments}
             />
           )}
           
@@ -141,6 +147,7 @@ const Index = () => {
               onEditProject={handleEditProject}
               onViewQuestionnaire={handleViewQuestionnaire}
               onViewTasks={handleViewTasks}
+              onViewDocuments={handleViewDocuments}
             />
           )}
 

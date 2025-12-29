@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo, UserPlus, User } from 'lucide-react';
+import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo, UserPlus, User, FileText } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +24,7 @@ interface ProjectCardProps {
   onEdit?: () => void;
   onViewQuestionnaire?: () => void;
   onViewTasks?: () => void;
+  onViewDocuments?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -34,6 +35,7 @@ export function ProjectCard({
   onEdit,
   onViewQuestionnaire,
   onViewTasks,
+  onViewDocuments,
   className,
   style,
 }: ProjectCardProps) {
@@ -104,6 +106,10 @@ export function ProjectCard({
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewTasks?.(); }}>
               <ListTodo className="mr-2 h-4 w-4" />
               View Tasks
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewDocuments?.(); }}>
+              <FileText className="mr-2 h-4 w-4" />
+              Documents
             </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewQuestionnaire?.(); }}>
               View Questionnaire
