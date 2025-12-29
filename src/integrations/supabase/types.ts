@@ -77,6 +77,59 @@ export type Database = {
         }
         Relationships: []
       }
+      project_documents: {
+        Row: {
+          category: Database["public"]["Enums"]["document_category"]
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          name: string
+          project_id: string
+          updated_at: string
+          uploaded_by: string
+          visible_to_client: boolean
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["document_category"]
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          project_id: string
+          updated_at?: string
+          uploaded_by: string
+          visible_to_client?: boolean
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["document_category"]
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          project_id?: string
+          updated_at?: string
+          uploaded_by?: string
+          visible_to_client?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           business_name: string
@@ -504,6 +557,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "client"
+      document_category:
+        | "formation"
+        | "tax"
+        | "branding"
+        | "contracts"
+        | "compliance"
+        | "client_uploads"
+        | "other"
       project_status:
         | "discovery"
         | "design"
@@ -641,6 +702,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "client"],
+      document_category: [
+        "formation",
+        "tax",
+        "branding",
+        "contracts",
+        "compliance",
+        "client_uploads",
+        "other",
+      ],
       project_status: [
         "discovery",
         "design",

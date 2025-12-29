@@ -25,6 +25,7 @@ interface DraggableProjectGridProps {
   onEditProject: (project: Project) => void;
   onViewQuestionnaire: (project: Project) => void;
   onViewTasks: (project: Project) => void;
+  onViewDocuments: (project: Project) => void;
 }
 
 export function DraggableProjectGrid({
@@ -33,6 +34,7 @@ export function DraggableProjectGrid({
   onEditProject,
   onViewQuestionnaire,
   onViewTasks,
+  onViewDocuments,
 }: DraggableProjectGridProps) {
   const [items, setItems] = useState(projects);
   const updateOrder = useUpdateProjectOrder();
@@ -96,6 +98,7 @@ export function DraggableProjectGrid({
               onEdit={() => onEditProject(project)}
               onViewQuestionnaire={() => onViewQuestionnaire(project)}
               onViewTasks={() => onViewTasks(project)}
+              onViewDocuments={() => onViewDocuments(project)}
             />
           ))}
         </div>

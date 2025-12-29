@@ -4,6 +4,7 @@ import { Dashboard } from '@/components/dashboard/Dashboard';
 import { ProjectDialog } from '@/components/projects/ProjectDialog';
 import { ProjectEditDialog } from '@/components/projects/ProjectEditDialog';
 import { ProjectTasksDialog } from '@/components/tasks/ProjectTasksDialog';
+import { ProjectDocumentsDialog } from '@/components/documents/ProjectDocumentsDialog';
 import { useProjects } from '@/hooks/useProjects';
 import { useQuestionnaire, useUpsertQuestionnaire } from '@/hooks/useQuestionnaires';
 import { Project, QuestionnaireData } from '@/types/project';
@@ -17,6 +18,7 @@ export default function AdminDashboard() {
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
 
   const { data: projects = [], isLoading } = useProjects();
   const upsertQuestionnaire = useUpsertQuestionnaire();
@@ -45,6 +47,7 @@ export default function AdminDashboard() {
           onEditProject={(p) => { setSelectedProject(p); setShowEditDialog(true); }}
           onViewQuestionnaire={(p) => { setSelectedProject(p); setShowQuestionnaire(true); }}
           onViewTasks={(p) => { setSelectedProject(p); setShowTasks(true); }}
+          onViewDocuments={(p) => { setSelectedProject(p); setShowDocuments(true); }}
         />
       </main>
       
@@ -60,6 +63,12 @@ export default function AdminDashboard() {
         project={selectedProject}
         open={showTasks}
         onOpenChange={(open) => { setShowTasks(open); if (!open) setSelectedProject(null); }}
+      />
+
+      <ProjectDocumentsDialog
+        project={selectedProject}
+        open={showDocuments}
+        onOpenChange={(open) => { setShowDocuments(open); if (!open) setSelectedProject(null); }}
       />
       
       <Dialog open={showQuestionnaire} onOpenChange={(open) => { setShowQuestionnaire(open); if (!open) setSelectedProject(null); }}>

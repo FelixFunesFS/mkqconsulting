@@ -11,6 +11,7 @@ interface DraggableProjectCardProps {
   onEdit?: () => void;
   onViewQuestionnaire?: () => void;
   onViewTasks?: () => void;
+  onViewDocuments?: () => void;
 }
 
 export function DraggableProjectCard({
@@ -19,6 +20,7 @@ export function DraggableProjectCard({
   onEdit,
   onViewQuestionnaire,
   onViewTasks,
+  onViewDocuments,
 }: DraggableProjectCardProps) {
   const {
     attributes,
@@ -59,6 +61,7 @@ export function DraggableProjectCard({
         onEdit={onEdit}
         onViewQuestionnaire={onViewQuestionnaire}
         onViewTasks={onViewTasks}
+        onViewDocuments={onViewDocuments}
         className={cn(
           'pl-8',
           isDragging && 'ring-2 ring-primary shadow-lg'
