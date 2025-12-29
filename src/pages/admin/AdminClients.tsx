@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useClients, useCreateClient, useDeleteClient, Client } from '@/hooks/useClients';
 import { useProjects } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
+import { ClientProjectsDialog } from '@/components/projects/ClientProjectsDialog';
 import { 
   Plus, 
   Mail, 
@@ -18,15 +19,27 @@ import {
   Trash2,
   User,
   FolderKanban,
-  Loader2
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function AdminClients() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -37,6 +50,9 @@ export default function AdminClients() {
     phone: '',
     notes: ''
   });
+
+  const [manageProjectsClient, setManageProjectsClient] = useState<Client | null>(null);
+  const [deleteConfirmClient, setDeleteConfirmClient] = useState<Client | null>(null);
 
   const { data: clients, isLoading: clientsLoading } = useClients();
   const { data: projects } = useProjects();
@@ -76,12 +92,22 @@ export default function AdminClients() {
   };
 
   const handleDeleteClient = async (client: Client) => {
+    const clientProjects = getClientProjects(client.id);
+    if (clientProjects.length > 0) {
+      setDeleteConfirmClient(client);
+      return;
+    }
+    await confirmDeleteClient(client);
+  };
+
+  const confirmDeleteClient = async (client: Client) => {
     try {
       await deleteClient.mutateAsync(client.id);
       toast({
         title: 'Client deleted',
         description: `${client.name} has been removed.`
       });
+      setDeleteConfirmClient(null);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -161,6 +187,13 @@ export default function AdminClients() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem 
+                              onClick={() => setManageProjectsClient(client)}
+                            >
+                              <FolderKanban className="h-4 w-4 mr-2" />
+                              Manage Projects
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-destructive"
                               onClick={() => handleDeleteClient(client)}
@@ -278,6 +311,38 @@ export default function AdminClients() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage Projects Dialog */}
+      <ClientProjectsDialog
+        client={manageProjectsClient}
+        open={!!manageProjectsClient}
+        onOpenChange={(open) => !open && setManageProjectsClient(null)}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmClient} onOpenChange={(open) => !open && setDeleteConfirmClient(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Client Has Assigned Projects
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirmClient?.name} has {getClientProjects(deleteConfirmClient?.id || '').length} project(s) assigned. 
+              Deleting this client will unassign them from those projects. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirmClient && confirmDeleteClient(deleteConfirmClient)}
+            >
+              Delete Client
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

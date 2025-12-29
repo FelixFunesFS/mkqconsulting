@@ -148,21 +148,3 @@ export function useDeleteClient() {
   });
 }
 
-export function useLinkProjectToClient() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ projectId, clientId }: { projectId: string; clientId: string | null }) => {
-      const { error } = await supabase
-        .from('projects')
-        .update({ client_id: clientId })
-        .eq('id', projectId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-    }
-  });
-}
