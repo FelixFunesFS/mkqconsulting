@@ -3,14 +3,20 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo } from 'lucide-react';
+import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo, UserPlus, User } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useClients } from '@/hooks/useClients';
+import { useUpdateProject } from '@/hooks/useProjects';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProjectCardProps {
   project: Project;
@@ -31,11 +37,39 @@ export function ProjectCard({
   className,
   style,
 }: ProjectCardProps) {
+  const { data: clients } = useClients();
+  const updateProject = useUpdateProject();
+  const { toast } = useToast();
+  
+  const linkedClient = clients?.find(c => c.id === project.clientId);
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const handleAssignClient = async (clientId: string | null) => {
+    try {
+      await updateProject.mutateAsync({
+        id: project.id,
+        clientId: clientId || undefined,
+      });
+      const clientName = clients?.find(c => c.id === clientId)?.name;
+      toast({
+        title: clientId ? 'Client assigned' : 'Client unassigned',
+        description: clientId 
+          ? `${clientName} can now access this project in their portal.`
+          : 'This project is no longer linked to a client.'
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update client assignment',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -49,9 +83,17 @@ export function ProjectCard({
     >
       {/* Status badge */}
       <div className="flex items-start justify-between mb-4">
-        <Badge className={cn('text-xs font-medium', statusColors[project.status])}>
-          {statusLabels[project.status]}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge className={cn('text-xs font-medium', statusColors[project.status])}>
+            {statusLabels[project.status]}
+          </Badge>
+          {linkedClient && (
+            <Badge variant="outline" className="text-xs gap-1">
+              <User className="h-3 w-3" />
+              {linkedClient.name}
+            </Badge>
+          )}
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
             <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -66,6 +108,35 @@ export function ProjectCard({
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewQuestionnaire?.(); }}>
               View Questionnaire
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger onClick={(e) => e.stopPropagation()}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Assign Client
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem 
+                  onClick={(e) => { e.stopPropagation(); handleAssignClient(null); }}
+                  className={!project.clientId ? 'bg-accent' : ''}
+                >
+                  <span className="text-muted-foreground">No client</span>
+                </DropdownMenuItem>
+                {clients?.map((client) => (
+                  <DropdownMenuItem
+                    key={client.id}
+                    onClick={(e) => { e.stopPropagation(); handleAssignClient(client.id); }}
+                    className={project.clientId === client.id ? 'bg-accent' : ''}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                        {client.name.charAt(0).toUpperCase()}
+                      </div>
+                      {client.name}
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit?.(); }}>
               Edit Project

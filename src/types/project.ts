@@ -16,6 +16,7 @@ export interface Project {
   monthlyRevenue?: number;
   hostingProvider?: string;
   displayOrder?: number;
+  clientId?: string;
 }
 
 export interface QuestionnaireData {

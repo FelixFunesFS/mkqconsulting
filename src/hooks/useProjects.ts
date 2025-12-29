@@ -18,6 +18,7 @@ const mapDbToProject = (row: any): Project => ({
   hostingProvider: row.hosting_provider,
   notes: row.notes,
   displayOrder: row.display_order,
+  clientId: row.client_id,
 });
 
 // Map Project to database insert/update
@@ -35,6 +36,7 @@ const mapProjectToDb = (project: Partial<Project>) => ({
   hosting_provider: project.hostingProvider,
   notes: project.notes,
   display_order: project.displayOrder,
+  client_id: project.clientId,
 });
 
 export function useProjects() {
