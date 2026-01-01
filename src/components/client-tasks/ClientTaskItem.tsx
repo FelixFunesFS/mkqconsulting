@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClientTask, PRIORITY_CONFIG, STATUS_CONFIG } from '@/types/clientTask';
-import { ChevronDown, ChevronUp, Check, X, Minus } from 'lucide-react';
+import { ClientTask } from '@/types/clientTask';
+import { ChevronDown, ChevronUp, Check, Minus, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ClientTaskItemProps {
@@ -30,7 +29,6 @@ export function ClientTaskItem({
 
   const isCompleted = task.status === 'completed';
   const isNA = task.status === 'not_applicable';
-  const priorityConfig = PRIORITY_CONFIG[task.priority];
 
   const handleToggle = () => {
     if (isNA) return;
@@ -48,12 +46,15 @@ export function ClientTaskItem({
     setIsSaving(false);
   };
 
+  const hasNotes = task.clientNotes && task.clientNotes.trim().length > 0;
+
   return (
     <div
       className={cn(
         'border rounded-lg p-4 transition-all',
-        isCompleted && 'bg-muted/50 border-muted',
-        isNA && 'bg-muted/30 border-muted opacity-60'
+        isCompleted && 'bg-emerald-500/5 border-emerald-500/20',
+        isNA && 'bg-muted/30 border-muted opacity-60',
+        !isCompleted && !isNA && 'hover:border-primary/30'
       )}
     >
       <div className="flex items-start gap-3">
@@ -61,7 +62,10 @@ export function ClientTaskItem({
           checked={isCompleted}
           disabled={isNA}
           onCheckedChange={handleToggle}
-          className="mt-1"
+          className={cn(
+            "mt-1 transition-colors",
+            isCompleted && "data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+          )}
         />
         
         <div className="flex-1 min-w-0">
@@ -69,64 +73,64 @@ export function ClientTaskItem({
             <span
               className={cn(
                 'font-medium',
-                isCompleted && 'line-through text-muted-foreground',
+                isCompleted && 'text-emerald-700 dark:text-emerald-400',
                 isNA && 'line-through text-muted-foreground'
               )}
             >
               {task.title}
             </span>
-            <Badge variant="outline" className={cn('text-xs', priorityConfig.color)}>
-              {priorityConfig.label}
-            </Badge>
             {isCompleted && (
-              <Badge variant="secondary" className="text-xs text-green-600">
+              <span className="inline-flex items-center text-xs text-emerald-600 dark:text-emerald-400">
                 <Check className="h-3 w-3 mr-1" /> Done
-              </Badge>
+              </span>
             )}
             {isNA && (
-              <Badge variant="secondary" className="text-xs">
-                <Minus className="h-3 w-3 mr-1" /> N/A
-              </Badge>
+              <span className="inline-flex items-center text-xs text-muted-foreground">
+                <Minus className="h-3 w-3 mr-1" /> Not applicable
+              </span>
+            )}
+            {hasNotes && !expanded && (
+              <MessageSquare className="h-3 w-3 text-muted-foreground" />
             )}
           </div>
           
           {task.description && (
-            <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+            <p className={cn(
+              "text-sm mt-1",
+              isCompleted ? "text-emerald-600/70 dark:text-emerald-400/70" : "text-muted-foreground"
+            )}>
+              {task.description}
+            </p>
           )}
           
-          {task.whyNeeded && (
-            <p className="text-xs text-muted-foreground mt-2 italic">
-              Why: {task.whyNeeded}
+          {task.whyNeeded && !isCompleted && (
+            <p className="text-xs text-muted-foreground/80 mt-2 italic">
+              💡 {task.whyNeeded}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {!isCompleted && !isNA && (
+        <div className="flex items-center gap-1">
+          {/* Show N/A option on hover or when expanded - only for non-completed items */}
+          {!isCompleted && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleMarkNA}
-              className="text-muted-foreground hover:text-foreground"
+              className={cn(
+                "text-xs text-muted-foreground hover:text-foreground",
+                !isNA && "opacity-0 group-hover:opacity-100 focus:opacity-100",
+                isNA && "opacity-100"
+              )}
             >
-              <X className="h-4 w-4" />
-              <span className="ml-1 text-xs">N/A</span>
-            </Button>
-          )}
-          {isNA && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleMarkNA}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Undo N/A
+              {isNA ? 'Undo' : "N/A"}
             </Button>
           )}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setExpanded(!expanded)}
+            className="h-8 w-8"
           >
             {expanded ? (
               <ChevronUp className="h-4 w-4" />
@@ -140,22 +144,25 @@ export function ClientTaskItem({
       {expanded && (
         <div className="mt-4 pl-8 space-y-3">
           <div>
-            <label className="text-sm font-medium">Your Notes / Response</label>
+            <label className="text-sm font-medium">
+              {isCompleted ? "Your Response" : "Add a note or response"}
+            </label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add your notes, answers, or details here..."
+              placeholder="Share any details, questions, or notes here..."
               className="mt-1"
               rows={3}
+              disabled={isCompleted}
             />
-            {notes !== (task.clientNotes || '') && (
+            {notes !== (task.clientNotes || '') && !isCompleted && (
               <Button
                 size="sm"
                 onClick={handleSaveNotes}
                 disabled={isSaving}
                 className="mt-2"
               >
-                {isSaving ? 'Saving...' : 'Save Notes'}
+                {isSaving ? 'Saving...' : 'Save'}
               </Button>
             )}
           </div>
