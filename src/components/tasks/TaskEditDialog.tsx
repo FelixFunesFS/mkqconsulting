@@ -69,7 +69,7 @@ export function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display">Edit Task</DialogTitle>
         </DialogHeader>

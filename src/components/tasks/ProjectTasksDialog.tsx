@@ -166,7 +166,7 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[95vw] sm:max-w-3xl h-[90vh] sm:h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader className="shrink-0">
             <DialogTitle className="font-display">
               {project?.businessName}
