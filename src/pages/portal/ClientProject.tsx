@@ -64,7 +64,7 @@ export default function ClientProject() {
 
   if (projectsLoading) {
     return (
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full flex-col md:flex-row bg-background">
         <ClientSidebar />
         <main className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -75,9 +75,9 @@ export default function ClientProject() {
 
   if (!project) {
     return (
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full flex-col md:flex-row bg-background">
         <ClientSidebar />
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8">
           <p>Project not found</p>
         </main>
       </div>
@@ -133,10 +133,10 @@ export default function ClientProject() {
   const unreadMessages = 0; // Placeholder for future notification system
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex min-h-screen w-full flex-col md:flex-row bg-background">
       <ClientSidebar />
-      <main className="flex-1 overflow-auto p-6 md:p-8">
-        <Button variant="ghost" onClick={() => navigate('/portal')} className="mb-4">
+      <main className="flex-1 overflow-auto p-4 md:p-8">
+        <Button variant="ghost" onClick={() => navigate('/portal')} className="mb-4 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
         </Button>
 

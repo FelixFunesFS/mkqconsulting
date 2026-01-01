@@ -6,17 +6,18 @@ import { useProjects } from '@/hooks/useProjects';
 import { statusLabels, statusColors } from '@/types/project';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, FolderKanban } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function ClientDashboard() {
   const { data: projects, isLoading } = useProjects();
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col md:flex-row bg-background">
       <ClientSidebar />
-      <main className="flex-1 overflow-auto p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
+      <main className="flex-1 overflow-auto p-4 md:p-8">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Welcome Back</h1>
           <p className="text-muted-foreground mt-1">Here's an overview of your projects</p>
         </div>
 
@@ -27,11 +28,11 @@ export default function ClientDashboard() {
             <CardContent className="flex flex-col items-center py-12">
               <FolderKanban className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-              <p className="text-muted-foreground">Your projects will appear here once they're set up.</p>
+              <p className="text-muted-foreground text-center">Your projects will appear here once they're set up.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {projects?.map((project) => (
               <Card 
                 key={project.id} 
@@ -39,11 +40,11 @@ export default function ClientDashboard() {
                 onClick={() => navigate(`/portal/project/${project.id}`)}
               >
                 <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{project.businessName}</CardTitle>
-                    <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg truncate">{project.businessName}</CardTitle>
+                    <Badge className={cn("shrink-0", statusColors[project.status])}>{statusLabels[project.status]}</Badge>
                   </div>
-                  <CardDescription>{project.clientName}</CardDescription>
+                  <CardDescription className="truncate">{project.clientName}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
