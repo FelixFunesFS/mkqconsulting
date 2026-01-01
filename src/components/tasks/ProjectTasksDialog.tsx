@@ -16,6 +16,7 @@ import { useQuestionnaire } from '@/hooks/useQuestionnaires';
 import { useClients } from '@/hooks/useClients';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, ListTodo, History, Plus, MessageCircle, ClipboardCheck } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ProjectTasksDialogProps {
   project: Project | null;
@@ -165,87 +166,95 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="font-display">
               {project?.businessName}
             </DialogTitle>
           </DialogHeader>
           
-          <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="tasks" className="flex-1 flex flex-col min-h-0">
+            <TabsList className="grid w-full grid-cols-4 shrink-0">
               <TabsTrigger value="tasks" className="flex items-center gap-2">
-                <ListTodo className="h-4 w-4" /> Tasks
+                <ListTodo className="h-4 w-4" /> <span className="hidden sm:inline">Tasks</span>
               </TabsTrigger>
               <TabsTrigger value="client-tasks" className="flex items-center gap-2">
-                <ClipboardCheck className="h-4 w-4" /> Client Tasks
+                <ClipboardCheck className="h-4 w-4" /> <span className="hidden sm:inline">Client Tasks</span>
               </TabsTrigger>
               <TabsTrigger value="comments" className="flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" /> Comments
+                <MessageCircle className="h-4 w-4" /> <span className="hidden sm:inline">Comments</span>
               </TabsTrigger>
               <TabsTrigger value="activity" className="flex items-center gap-2">
-                <History className="h-4 w-4" /> Activity
+                <History className="h-4 w-4" /> <span className="hidden sm:inline">Activity</span>
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="tasks" className="flex-1 overflow-y-auto pr-2 mt-4">
-              {isLoadingTasks ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <TaskList
-                  tasks={tasks}
-                  projectId={project?.id || ''}
-                  projectPhase={project?.status || 'discovery'}
-                  isGenerating={generateTasks.isPending}
-                  onStatusChange={handleStatusChange}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onGenerateTasks={handleGenerateTasks}
-                  onAddTask={handleAddTask}
-                />
-              )}
+            <TabsContent value="tasks" className="flex-1 min-h-0 overflow-hidden mt-4">
+              <ScrollArea className="h-full pr-4">
+                {isLoadingTasks ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <TaskList
+                    tasks={tasks}
+                    projectId={project?.id || ''}
+                    projectPhase={project?.status || 'discovery'}
+                    isGenerating={generateTasks.isPending}
+                    onStatusChange={handleStatusChange}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onGenerateTasks={handleGenerateTasks}
+                    onAddTask={handleAddTask}
+                  />
+                )}
+              </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="client-tasks" className="flex-1 overflow-y-auto pr-2 mt-4">
-              {project && (
-                <AdminClientTaskList
-                  projectId={project.id}
-                  projectName={project.businessName}
-                  clientEmail={projectClient?.email}
-                  clientName={projectClient?.name}
-                />
-              )}
+            <TabsContent value="client-tasks" className="flex-1 min-h-0 overflow-hidden mt-4">
+              <ScrollArea className="h-full pr-4">
+                {project && (
+                  <AdminClientTaskList
+                    projectId={project.id}
+                    projectName={project.businessName}
+                    clientEmail={projectClient?.email}
+                    clientName={projectClient?.name}
+                  />
+                )}
+              </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="comments" className="flex-1 overflow-hidden mt-4">
+            <TabsContent value="comments" className="flex-1 min-h-0 overflow-hidden mt-4">
               {project && (
                 <CommentThread
                   projectId={project.id}
                   isAdmin={true}
-                  maxHeight="calc(85vh - 280px)"
+                  maxHeight="100%"
                 />
               )}
             </TabsContent>
             
-            <TabsContent value="activity" className="flex-1 overflow-hidden mt-4">
-              <div className="flex justify-end mb-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowAddNoteDialog(true)}
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Add Note
-                </Button>
+            <TabsContent value="activity" className="flex-1 min-h-0 overflow-hidden mt-4">
+              <div className="flex flex-col h-full">
+                <div className="flex justify-end mb-4 shrink-0">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowAddNoteDialog(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add Note
+                  </Button>
+                </div>
+                {project && (
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    <ActivityTimeline 
+                      projectId={project.id} 
+                      isAdmin={true} 
+                      maxHeight="100%"
+                    />
+                  </div>
+                )}
               </div>
-              {project && (
-                <ActivityTimeline 
-                  projectId={project.id} 
-                  isAdmin={true} 
-                  maxHeight="calc(85vh - 220px)" 
-                />
-              )}
             </TabsContent>
           </Tabs>
         </DialogContent>

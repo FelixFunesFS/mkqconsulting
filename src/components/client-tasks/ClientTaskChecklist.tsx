@@ -77,9 +77,9 @@ export function ClientTaskChecklist({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Progress Summary */}
-      <div className="p-4 bg-muted/50 rounded-lg">
+    <div className="flex flex-col h-full">
+      {/* Progress Summary - Fixed Position */}
+      <div className="p-4 bg-muted/50 rounded-lg shrink-0 mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">Progress</span>
           <span className="text-sm text-muted-foreground">
@@ -89,46 +89,48 @@ export function ClientTaskChecklist({
         <Progress value={progress} className="h-2" />
       </div>
 
-      {/* Task Groups */}
-      <ScrollArea style={{ maxHeight }}>
-        <div className="space-y-6 pr-4">
-          {CATEGORY_ORDER.map((category) => {
-            const categoryTasks = groupedTasks[category];
-            if (categoryTasks.length === 0) return null;
+      {/* Scrollable Task Groups */}
+      <div className="flex-1 min-h-0 overflow-hidden" style={{ maxHeight }}>
+        <ScrollArea className="h-full">
+          <div className="space-y-6 pr-4">
+            {CATEGORY_ORDER.map((category) => {
+              const categoryTasks = groupedTasks[category];
+              if (categoryTasks.length === 0) return null;
 
-            const categoryCompleted = categoryTasks.filter(
-              (t) => t.status === 'completed'
-            ).length;
-            const categoryApplicable = categoryTasks.filter(
-              (t) => t.status !== 'not_applicable'
-            ).length;
+              const categoryCompleted = categoryTasks.filter(
+                (t) => t.status === 'completed'
+              ).length;
+              const categoryApplicable = categoryTasks.filter(
+                (t) => t.status !== 'not_applicable'
+              ).length;
 
-            return (
-              <div key={category}>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-lg">{CATEGORY_LABELS[category]}</h3>
-                  <span className="text-sm text-muted-foreground">
-                    {categoryCompleted}/{categoryApplicable}
-                  </span>
+              return (
+                <div key={category}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-lg">{CATEGORY_LABELS[category]}</h3>
+                    <span className="text-sm text-muted-foreground">
+                      {categoryCompleted}/{categoryApplicable}
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {categoryTasks.map((task) => (
+                      <ClientTaskItem
+                        key={task.id}
+                        task={task}
+                        isAdmin={isAdmin}
+                        onStatusChange={onStatusChange}
+                        onNotesChange={onNotesChange}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  {categoryTasks.map((task) => (
-                    <ClientTaskItem
-                      key={task.id}
-                      task={task}
-                      isAdmin={isAdmin}
-                      onStatusChange={onStatusChange}
-                      onNotesChange={onNotesChange}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </ScrollArea>
+              );
+            })}
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   );
 }

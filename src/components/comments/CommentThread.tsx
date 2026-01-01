@@ -106,21 +106,23 @@ export function CommentThread({ projectId, taskId, isAdmin, maxHeight = '400px' 
           <p className="text-xs">Start the conversation</p>
         </div>
       ) : (
-        <ScrollArea style={{ maxHeight }} className="flex-1 pr-4">
-          <div className="divide-y divide-border/50">
-            {comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                currentUserId={currentUser?.id || ''}
-                isAdmin={isAdmin}
-                onUpdate={handleUpdate}
-                onDelete={handleDelete}
-                onToggleVisibility={handleToggleVisibility}
-              />
-            ))}
-          </div>
-        </ScrollArea>
+        <div className="flex-1 min-h-0 overflow-hidden" style={{ maxHeight: maxHeight === '100%' ? undefined : maxHeight }}>
+          <ScrollArea className="h-full">
+            <div className="divide-y divide-border/50 pr-4">
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  currentUserId={currentUser?.id || ''}
+                  isAdmin={isAdmin}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                  onToggleVisibility={handleToggleVisibility}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       )}
       
       <div className="border-t pt-4 mt-4 space-y-3">

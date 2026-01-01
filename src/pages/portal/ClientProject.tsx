@@ -128,7 +128,7 @@ export default function ClientProject() {
                 tasks={clientTasks}
                 isLoading={clientTasksLoading}
                 isAdmin={false}
-                maxHeight="400px"
+                maxHeight="min(400px, 50vh)"
                 onStatusChange={handleClientTaskStatusChange}
                 onNotesChange={handleClientTaskNotesChange}
               />
@@ -148,7 +148,7 @@ export default function ClientProject() {
               tasks={tasks || []} 
               projectId={project.id}
               isLoading={tasksLoading}
-              maxHeight="400px"
+              maxHeight="min(400px, 50vh)"
             />
           </CardContent>
         </Card>
@@ -188,7 +188,7 @@ export default function ClientProject() {
                       <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
                   ) : (
-                    <ScrollArea className="h-[300px] pr-4">
+                    <ScrollArea className="h-[min(300px,40vh)] pr-4">
                       <DocumentList
                         documents={documents || []}
                         projectId={project.id}
@@ -221,7 +221,7 @@ export default function ClientProject() {
               <CommentThread 
                 projectId={project.id} 
                 isAdmin={false} 
-                maxHeight="350px" 
+                maxHeight="min(350px, 45vh)" 
               />
             </CardContent>
           </Card>
@@ -236,7 +236,7 @@ export default function ClientProject() {
               <ActivityTimeline 
                 projectId={project.id} 
                 isAdmin={false} 
-                maxHeight="350px" 
+                maxHeight="min(350px, 45vh)" 
               />
             </CardContent>
           </Card>

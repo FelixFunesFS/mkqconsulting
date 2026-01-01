@@ -63,18 +63,20 @@ export function ActivityTimeline({ projectId, isAdmin, maxHeight = '400px', limi
   }
 
   return (
-    <ScrollArea style={{ maxHeight }} className="pr-4">
-      <div className="space-y-0">
-        {displayedActivities.map((activity) => (
-          <ActivityItem
-            key={activity.id}
-            activity={activity}
-            isAdmin={isAdmin}
-            onDelete={handleDelete}
-            onToggleVisibility={handleToggleVisibility}
-          />
-        ))}
-      </div>
-    </ScrollArea>
+    <div className="h-full min-h-0 overflow-hidden" style={{ maxHeight: maxHeight === '100%' ? undefined : maxHeight }}>
+      <ScrollArea className="h-full">
+        <div className="space-y-0 pr-4">
+          {displayedActivities.map((activity) => (
+            <ActivityItem
+              key={activity.id}
+              activity={activity}
+              isAdmin={isAdmin}
+              onDelete={handleDelete}
+              onToggleVisibility={handleToggleVisibility}
+            />
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
   );
 }
