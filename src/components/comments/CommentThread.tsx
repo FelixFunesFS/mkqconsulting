@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useComments, useCreateComment, useUpdateComment, useDeleteComment } from '@/hooks/useComments';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { CommentItem } from './CommentItem';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,6 +28,13 @@ export function CommentThread({ projectId, taskId, isAdmin, maxHeight = '400px' 
   const updateComment = useUpdateComment();
   const deleteComment = useDeleteComment();
   const { toast } = useToast();
+
+  // Subscribe to realtime updates
+  useRealtimeSubscription({
+    table: 'comments',
+    projectId,
+    queryKey: ['comments', projectId, taskId],
+  });
 
   // Get current user
   const { data: currentUser } = useQuery({

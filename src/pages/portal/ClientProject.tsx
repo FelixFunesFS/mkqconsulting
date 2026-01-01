@@ -77,6 +77,7 @@ export default function ClientProject() {
           <CardContent>
             <ClientTaskList 
               tasks={tasks || []} 
+              projectId={project.id}
               isLoading={tasksLoading}
               maxHeight="400px"
             />

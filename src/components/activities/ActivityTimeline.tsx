@@ -1,4 +1,5 @@
 import { useActivities, useDeleteActivity, useUpdateActivityVisibility } from '@/hooks/useActivities';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { ActivityItem } from './ActivityItem';
 import { Loader2, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +17,13 @@ export function ActivityTimeline({ projectId, isAdmin, maxHeight = '400px', limi
   const deleteActivity = useDeleteActivity();
   const updateVisibility = useUpdateActivityVisibility();
   const { toast } = useToast();
+
+  // Subscribe to realtime updates
+  useRealtimeSubscription({
+    table: 'activities',
+    projectId,
+    queryKey: ['activities', projectId],
+  });
 
   const displayedActivities = limit ? activities.slice(0, limit) : activities;
 
