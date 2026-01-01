@@ -112,17 +112,20 @@ export function DocumentUploader({ projectId, isAdmin = false, onSuccess }: Docu
         `}
       >
         {file ? (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Upload className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium">{file.name}</span>
-              <span className="text-xs text-muted-foreground">
-                ({(file.size / 1024 / 1024).toFixed(2)} MB)
-              </span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+              <Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <span className="text-sm font-medium block truncate">{file.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                </span>
+              </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
+              className="flex-shrink-0"
               onClick={() => setFile(null)}
             >
               <X className="h-4 w-4" />
