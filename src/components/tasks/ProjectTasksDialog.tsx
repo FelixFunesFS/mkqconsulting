@@ -8,12 +8,13 @@ import { TaskCreateDialog } from './TaskCreateDialog';
 import { ActivityTimeline } from '@/components/activities/ActivityTimeline';
 import { AddNoteDialog } from '@/components/activities/AddNoteDialog';
 import { CommentThread } from '@/components/comments/CommentThread';
+import { AdminClientTaskList } from '@/components/client-tasks/AdminClientTaskList';
 import { Project } from '@/types/project';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { useTasks, useUpdateTaskStatus, useUpdateTask, useDeleteTask, useGenerateTasks, useCreateTask } from '@/hooks/useTasks';
 import { useQuestionnaire } from '@/hooks/useQuestionnaires';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, ListTodo, History, Plus, MessageCircle } from 'lucide-react';
+import { Loader2, ListTodo, History, Plus, MessageCircle, ClipboardCheck } from 'lucide-react';
 
 interface ProjectTasksDialogProps {
   project: Project | null;
@@ -167,9 +168,12 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
           </DialogHeader>
           
           <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="tasks" className="flex items-center gap-2">
                 <ListTodo className="h-4 w-4" /> Tasks
+              </TabsTrigger>
+              <TabsTrigger value="client-tasks" className="flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4" /> Client Tasks
               </TabsTrigger>
               <TabsTrigger value="comments" className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4" /> Comments
@@ -197,6 +201,10 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
                   onAddTask={handleAddTask}
                 />
               )}
+            </TabsContent>
+
+            <TabsContent value="client-tasks" className="flex-1 overflow-y-auto pr-2 mt-4">
+              {project && <AdminClientTaskList projectId={project.id} />}
             </TabsContent>
 
             <TabsContent value="comments" className="flex-1 overflow-hidden mt-4">
