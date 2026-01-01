@@ -7,12 +7,13 @@ import { TaskEditDialog } from './TaskEditDialog';
 import { TaskCreateDialog } from './TaskCreateDialog';
 import { ActivityTimeline } from '@/components/activities/ActivityTimeline';
 import { AddNoteDialog } from '@/components/activities/AddNoteDialog';
+import { CommentThread } from '@/components/comments/CommentThread';
 import { Project } from '@/types/project';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { useTasks, useUpdateTaskStatus, useUpdateTask, useDeleteTask, useGenerateTasks, useCreateTask } from '@/hooks/useTasks';
 import { useQuestionnaire } from '@/hooks/useQuestionnaires';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, ListTodo, History, Plus } from 'lucide-react';
+import { Loader2, ListTodo, History, Plus, MessageCircle } from 'lucide-react';
 
 interface ProjectTasksDialogProps {
   project: Project | null;
@@ -166,9 +167,12 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
           </DialogHeader>
           
           <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="tasks" className="flex items-center gap-2">
                 <ListTodo className="h-4 w-4" /> Tasks
+              </TabsTrigger>
+              <TabsTrigger value="comments" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" /> Comments
               </TabsTrigger>
               <TabsTrigger value="activity" className="flex items-center gap-2">
                 <History className="h-4 w-4" /> Activity
@@ -191,6 +195,16 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
                   onDelete={handleDelete}
                   onGenerateTasks={handleGenerateTasks}
                   onAddTask={handleAddTask}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="comments" className="flex-1 overflow-hidden mt-4">
+              {project && (
+                <CommentThread
+                  projectId={project.id}
+                  isAdmin={true}
+                  maxHeight="calc(85vh - 280px)"
                 />
               )}
             </TabsContent>
