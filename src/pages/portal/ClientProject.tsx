@@ -135,7 +135,7 @@ export default function ClientProject() {
   return (
     <div className="flex min-h-screen w-full flex-col md:flex-row bg-background">
       <ClientSidebar />
-      <main className="flex-1 overflow-auto p-4 md:p-8">
+      <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
         <Button variant="ghost" onClick={() => navigate('/portal')} className="mb-4 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
         </Button>
@@ -150,7 +150,7 @@ export default function ClientProject() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl md:text-3xl font-bold">{project.businessName}</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold break-words">{project.businessName}</h1>
                 <Badge className={cn(statusColors[project.status], "hidden sm:inline-flex")}>
                   {statusLabels[project.status]}
                 </Badge>
@@ -166,27 +166,27 @@ export default function ClientProject() {
 
         {/* Tabbed Navigation */}
         <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <LayoutDashboard className="h-4 w-4 hidden sm:block" />
-              Overview
+          <TabsList className="flex w-full justify-between sm:justify-start sm:gap-1 sm:w-auto">
+            <TabsTrigger value="overview" className="flex-1 sm:flex-initial flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
               {pendingClientTasks > 0 && (
                 <Badge variant="secondary" className="h-5 min-w-5 text-xs px-1.5">
                   {pendingClientTasks}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="progress" className="flex items-center gap-2">
-              <History className="h-4 w-4 hidden sm:block" />
-              Progress
+            <TabsTrigger value="progress" className="flex-1 sm:flex-initial flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4">
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">Progress</span>
             </TabsTrigger>
-            <TabsTrigger value="files" className="flex items-center gap-2">
-              <FileText className="h-4 w-4 hidden sm:block" />
-              Files
+            <TabsTrigger value="files" className="flex-1 sm:flex-initial flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Files</span>
             </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4 hidden sm:block" />
-              Messages
+            <TabsTrigger value="messages" className="flex-1 sm:flex-initial flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4">
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Messages</span>
             </TabsTrigger>
           </TabsList>
 
@@ -288,7 +288,7 @@ export default function ClientProject() {
 
           {/* Files Tab */}
           <TabsContent value="files" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2">

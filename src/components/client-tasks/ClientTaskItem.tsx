@@ -73,11 +73,11 @@ export function ClientTaskItem({
           )}
         />
         
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className={cn(
-                'font-medium',
+                'font-medium break-words',
                 isCompleted && 'text-emerald-700 dark:text-emerald-400',
                 isNA && 'line-through text-muted-foreground'
               )}

@@ -82,11 +82,11 @@ function DocumentItem({ doc, projectId, isAdmin }: { doc: ProjectDocument; proje
 
   return (
     <>
-      <div className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+      <div className="flex items-center justify-between gap-2 p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors overflow-hidden">
+        <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
           <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium truncate">{doc.name}</p>
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <p className="text-sm font-medium truncate max-w-[180px] sm:max-w-[280px] lg:max-w-none">{doc.name}</p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               {fileSize && <span>{fileSize}</span>}
               <span>•</span>
