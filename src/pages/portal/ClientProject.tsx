@@ -15,7 +15,7 @@ import { DocumentList } from '@/components/documents/DocumentList';
 import { DocumentUploader } from '@/components/documents/DocumentUploader';
 import { ActivityTimeline } from '@/components/activities/ActivityTimeline';
 import { CommentThread } from '@/components/comments/CommentThread';
-import { ClientTaskList } from '@/components/tasks/ClientTaskList';
+import { ClientProjectSummary } from '@/components/tasks/ClientProjectSummary';
 import { ClientTaskChecklist } from '@/components/client-tasks/ClientTaskChecklist';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
@@ -144,11 +144,9 @@ export default function ClientProject() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ClientTaskList 
+            <ClientProjectSummary 
               tasks={tasks || []} 
-              projectId={project.id}
               isLoading={tasksLoading}
-              maxHeight="min(400px, 50vh)"
             />
           </CardContent>
         </Card>
