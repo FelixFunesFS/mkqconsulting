@@ -17,8 +17,14 @@ export default function Auth() {
   const { isAdmin, isClient, loading: roleLoading } = useUserRole();
 
   // Redirect authenticated users to their portal
+  // Wait for BOTH auth and role loading to complete before redirecting
   useEffect(() => {
-    if (!authLoading && !roleLoading && isAuthenticated) {
+    // Don't redirect until we know both auth state and user roles
+    if (authLoading || roleLoading) {
+      return;
+    }
+    
+    if (isAuthenticated) {
       if (isAdmin) {
         navigate('/admin', { replace: true });
       } else if (isClient) {

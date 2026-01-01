@@ -1,16 +1,15 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ClientSidebar } from '@/components/layout/ClientSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useProjects } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useClientTasks, useUpdateClientTask } from '@/hooks/useClientTasks';
 import { statusLabels, statusColors } from '@/types/project';
-import { ArrowLeft, Loader2, FileText, Upload, History, MessageCircle, ChevronDown, HelpCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Loader2, FileText, Upload, History, MessageCircle, HelpCircle, Sparkles, LayoutDashboard } from 'lucide-react';
 import { DocumentList } from '@/components/documents/DocumentList';
 import { DocumentUploader } from '@/components/documents/DocumentUploader';
 import { ActivityTimeline } from '@/components/activities/ActivityTimeline';
@@ -19,7 +18,6 @@ import { ClientProjectSummary } from '@/components/tasks/ClientProjectSummary';
 import { ClientTaskChecklist } from '@/components/client-tasks/ClientTaskChecklist';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 // Friendly status messages for the banner
@@ -49,7 +47,8 @@ const statusMessages: Record<string, { message: string; subtext: string }> = {
 export default function ClientProject() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [showActivity, setShowActivity] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'overview';
   
   const { data: projects, isLoading: projectsLoading } = useProjects();
   const { data: tasks, isLoading: tasksLoading } = useTasks(id);
@@ -59,9 +58,13 @@ export default function ClientProject() {
   
   const project = projects?.find(p => p.id === id);
 
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
+
   if (projectsLoading) {
     return (
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen w-full bg-background">
         <ClientSidebar />
         <main className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -72,7 +75,7 @@ export default function ClientProject() {
 
   if (!project) {
     return (
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen w-full bg-background">
         <ClientSidebar />
         <main className="flex-1 p-8">
           <p>Project not found</p>
@@ -126,8 +129,11 @@ export default function ClientProject() {
     }
   };
 
+  const pendingClientTasks = clientTasks.filter(t => t.status === 'pending').length;
+  const unreadMessages = 0; // Placeholder for future notification system
+
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen w-full bg-background">
       <ClientSidebar />
       <main className="flex-1 overflow-auto p-6 md:p-8">
         <Button variant="ghost" onClick={() => navigate('/portal')} className="mb-4">
@@ -158,94 +164,147 @@ export default function ClientProject() {
           </div>
         </div>
 
-        {/* Section 1: Your To-Do List (Client Tasks) - Priority #1 */}
-        {clientTasks.length > 0 && (
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" /> 
-                We Need Your Help
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Complete these items to keep your project moving forward
-              </p>
-            </CardHeader>
-            <CardContent>
-              <ClientTaskChecklist
-                tasks={clientTasks}
-                isLoading={clientTasksLoading}
-                isAdmin={false}
-                maxHeight="min(400px, 50vh)"
-                onStatusChange={handleClientTaskStatusChange}
-                onNotesChange={handleClientTaskNotesChange}
-              />
-            </CardContent>
-          </Card>
-        )}
+        {/* Tabbed Navigation */}
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4 hidden sm:block" />
+              Overview
+              {pendingClientTasks > 0 && (
+                <Badge variant="secondary" className="h-5 min-w-5 text-xs px-1.5">
+                  {pendingClientTasks}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="flex items-center gap-2">
+              <History className="h-4 w-4 hidden sm:block" />
+              Progress
+            </TabsTrigger>
+            <TabsTrigger value="files" className="flex items-center gap-2">
+              <FileText className="h-4 w-4 hidden sm:block" />
+              Files
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 hidden sm:block" />
+              Messages
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Section 2: Project Progress - Priority #2 */}
-        <Card className="mb-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              What's Happening
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Track your project's progress through each phase
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ClientProjectSummary 
-              tasks={tasks || []} 
-              isLoading={tasksLoading}
-            />
-          </CardContent>
-        </Card>
+          {/* Overview Tab - Client Tasks + Questionnaire */}
+          <TabsContent value="overview" className="space-y-6">
+            {clientTasks.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" /> 
+                    We Need Your Help
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Complete these items to keep your project moving forward
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ClientTaskChecklist
+                    tasks={clientTasks}
+                    isLoading={clientTasksLoading}
+                    isAdmin={false}
+                    maxHeight="min(500px, 60vh)"
+                    onStatusChange={handleClientTaskStatusChange}
+                    onNotesChange={handleClientTaskNotesChange}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
-        {/* Section 3: Communication - Discussion + Documents */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" /> Messages
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Chat directly with your project team
-              </p>
-            </CardHeader>
-            <CardContent>
-              <CommentThread 
-                projectId={project.id} 
-                isAdmin={false} 
-                maxHeight="min(350px, 45vh)" 
-              />
-            </CardContent>
-          </Card>
+            {clientTasks.length === 0 && (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                  <h3 className="text-lg font-medium mb-2">You're all caught up!</h3>
+                  <p className="text-muted-foreground">
+                    No pending items from your side. We'll notify you when we need your input.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" /> Files & Documents
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                View shared files or upload your own
-              </p>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="documents">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="documents">View Files</TabsTrigger>
-                  <TabsTrigger value="upload">
-                    <Upload className="h-4 w-4 mr-1" /> Upload
-                  </TabsTrigger>
-                </TabsList>
+            <Card>
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-muted">
+                      <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Project Questionnaire</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Help us understand your business better
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="outline" onClick={() => navigate(`/portal/questionnaire/${project.id}`)}>
+                    View Questionnaire
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <TabsContent value="documents">
+          {/* Progress Tab - What's Happening + Activity */}
+          <TabsContent value="progress" className="space-y-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>What's Happening</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Track your project's progress through each phase
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ClientProjectSummary 
+                  tasks={tasks || []} 
+                  isLoading={tasksLoading}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5" /> Recent Activity
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  A timeline of updates on your project
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ActivityTimeline 
+                  projectId={project.id} 
+                  isAdmin={false} 
+                  maxHeight="min(500px, 60vh)" 
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Files Tab */}
+          <TabsContent value="files" className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" /> Shared Files
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Documents shared with you by the project team
+                  </p>
+                </CardHeader>
+                <CardContent>
                   {documentsLoading ? (
-                    <div className="flex justify-center py-4">
+                    <div className="flex justify-center py-8">
                       <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
                   ) : (
-                    <ScrollArea className="h-[min(250px,35vh)] pr-4">
+                    <ScrollArea className="h-[min(400px,50vh)] pr-4">
                       <DocumentList
                         documents={documents || []}
                         projectId={project.id}
@@ -254,68 +313,49 @@ export default function ClientProject() {
                       />
                     </ScrollArea>
                   )}
-                </TabsContent>
+                </CardContent>
+              </Card>
 
-                <TabsContent value="upload">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="h-5 w-5" /> Upload Files
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Share files with the project team
+                  </p>
+                </CardHeader>
+                <CardContent>
                   <DocumentUploader
                     projectId={project.id}
                     isAdmin={false}
                   />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Section 4: Questionnaire - Compact */}
-        <Card className="mb-6">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted">
-                  <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <h4 className="font-medium">Project Questionnaire</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Help us understand your business better
-                  </p>
-                </div>
-              </div>
-              <Button variant="outline" onClick={() => navigate(`/portal/questionnaire/${project.id}`)}>
-                View Questionnaire
-              </Button>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        {/* Section 5: Activity - Collapsible */}
-        <Collapsible open={showActivity} onOpenChange={setShowActivity}>
-          <Card>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <History className="h-5 w-5" /> Recent Activity
-                  </CardTitle>
-                  <ChevronDown className={cn(
-                    "h-5 w-5 text-muted-foreground transition-transform",
-                    showActivity && "rotate-180"
-                  )} />
-                </div>
+          {/* Messages Tab */}
+          <TabsContent value="messages">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" /> Messages
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Chat directly with your project team
+                </p>
               </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
               <CardContent>
-                <ActivityTimeline 
+                <CommentThread 
                   projectId={project.id} 
                   isAdmin={false} 
-                  maxHeight="min(300px, 40vh)" 
+                  maxHeight="min(600px, 70vh)" 
                 />
               </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
