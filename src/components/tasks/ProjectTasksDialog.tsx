@@ -13,6 +13,7 @@ import { Project } from '@/types/project';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { useTasks, useUpdateTaskStatus, useUpdateTask, useDeleteTask, useGenerateTasks, useCreateTask } from '@/hooks/useTasks';
 import { useQuestionnaire } from '@/hooks/useQuestionnaires';
+import { useClients } from '@/hooks/useClients';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, ListTodo, History, Plus, MessageCircle, ClipboardCheck } from 'lucide-react';
 
@@ -30,11 +31,15 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
 
   const { data: tasks = [], isLoading: isLoadingTasks } = useTasks(project?.id);
   const { data: questionnaire } = useQuestionnaire(project?.id);
+  const { data: clients = [] } = useClients();
   const updateStatus = useUpdateTaskStatus();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const generateTasks = useGenerateTasks();
   const createTask = useCreateTask();
+
+  // Find the client for this project
+  const projectClient = clients.find((c) => c.id === project?.clientId);
 
   const handleStatusChange = async (taskId: string, status: TaskStatus) => {
     try {
@@ -204,7 +209,14 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
             </TabsContent>
 
             <TabsContent value="client-tasks" className="flex-1 overflow-y-auto pr-2 mt-4">
-              {project && <AdminClientTaskList projectId={project.id} />}
+              {project && (
+                <AdminClientTaskList
+                  projectId={project.id}
+                  projectName={project.businessName}
+                  clientEmail={projectClient?.email}
+                  clientName={projectClient?.name}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="comments" className="flex-1 overflow-hidden mt-4">

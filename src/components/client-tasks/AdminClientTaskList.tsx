@@ -2,21 +2,27 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ClientTaskChecklist } from './ClientTaskChecklist';
 import { ApplyTemplateDialog } from './ApplyTemplateDialog';
+import { SendOnboardingEmailDialog } from './SendOnboardingEmailDialog';
 import { ClientTask } from '@/types/clientTask';
 import { useClientTasks, useUpdateClientTask, useDeleteClientTask } from '@/hooks/useClientTasks';
 import { toast } from '@/hooks/use-toast';
-import { Plus, FileStack, Loader2 } from 'lucide-react';
+import { FileStack, Loader2 } from 'lucide-react';
 
 interface AdminClientTaskListProps {
   projectId: string;
+  projectName?: string;
+  clientEmail?: string;
+  clientName?: string;
 }
 
-export function AdminClientTaskList({ projectId }: AdminClientTaskListProps) {
+export function AdminClientTaskList({ projectId, projectName, clientEmail, clientName }: AdminClientTaskListProps) {
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
 
   const { data: tasks = [], isLoading } = useClientTasks(projectId);
   const updateTask = useUpdateClientTask();
   const deleteTask = useDeleteClientTask();
+
+  const pendingTaskCount = tasks.filter((t) => t.status === 'pending').length;
 
   const handleStatusChange = async (
     taskId: string,
@@ -83,7 +89,7 @@ export function AdminClientTaskList({ projectId }: AdminClientTaskListProps) {
   return (
     <div className="space-y-4">
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button
           variant="outline"
           size="sm"
@@ -92,7 +98,16 @@ export function AdminClientTaskList({ projectId }: AdminClientTaskListProps) {
           <FileStack className="h-4 w-4 mr-2" />
           Apply Template
         </Button>
-        {/* TODO: Add "Create Task" button */}
+        
+        {clientEmail && clientName && projectName && tasks.length > 0 && (
+          <SendOnboardingEmailDialog
+            projectId={projectId}
+            projectName={projectName}
+            clientEmail={clientEmail}
+            clientName={clientName}
+            pendingTaskCount={pendingTaskCount}
+          />
+        )}
       </div>
 
       {/* Task List */}
