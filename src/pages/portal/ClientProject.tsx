@@ -9,18 +9,19 @@ import { useProjects } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
 import { useDocuments } from '@/hooks/useDocuments';
 import { statusLabels, statusColors } from '@/types/project';
-import { ArrowLeft, CheckCircle2, Clock, Loader2, FileText, Upload, History, MessageCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, Loader2, FileText, Upload, History, MessageCircle, ListTodo } from 'lucide-react';
 import { DocumentList } from '@/components/documents/DocumentList';
 import { DocumentUploader } from '@/components/documents/DocumentUploader';
 import { ActivityTimeline } from '@/components/activities/ActivityTimeline';
 import { CommentThread } from '@/components/comments/CommentThread';
+import { ClientTaskList } from '@/components/tasks/ClientTaskList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ClientProject() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const { data: tasks } = useTasks(id);
+  const { data: tasks, isLoading: tasksLoading } = useTasks(id);
   const { data: documents, isLoading: documentsLoading } = useDocuments(id || '');
   
   const project = projects?.find(p => p.id === id);
@@ -66,35 +67,21 @@ export default function ClientProject() {
           <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold mb-2">{project.progress}%</div>
-              <Progress value={project.progress} className="h-2" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Completed</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-success" />
-              <span className="text-2xl font-bold">{completedTasks}/{totalTasks}</span>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Target Launch</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <span className="text-2xl font-bold">{project.targetLaunchDate || 'TBD'}</span>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Task List - Full Width */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ListTodo className="h-5 w-5" /> Project Tasks
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ClientTaskList 
+              tasks={tasks || []} 
+              isLoading={tasksLoading}
+              maxHeight="400px"
+            />
+          </CardContent>
+        </Card>
 
         <div className="grid gap-6 lg:grid-cols-2 mb-6">
           <Card>
