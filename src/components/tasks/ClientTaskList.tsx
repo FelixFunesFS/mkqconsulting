@@ -3,6 +3,7 @@ import { statusLabels as phaseLabels } from '@/types/project';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { 
   CheckCircle2, 
   Circle, 
@@ -15,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 interface ClientTaskListProps {
   tasks: Task[];
+  projectId?: string;
   isLoading?: boolean;
   maxHeight?: string;
 }
@@ -84,7 +86,14 @@ function PhaseSection({ phase, tasks }: { phase: string; tasks: Task[] }) {
   );
 }
 
-export function ClientTaskList({ tasks, isLoading, maxHeight = '500px' }: ClientTaskListProps) {
+export function ClientTaskList({ tasks, projectId, isLoading, maxHeight = '500px' }: ClientTaskListProps) {
+  // Subscribe to realtime updates
+  useRealtimeSubscription({
+    table: 'tasks',
+    projectId,
+    queryKey: ['tasks', projectId],
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
