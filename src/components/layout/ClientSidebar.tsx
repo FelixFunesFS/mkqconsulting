@@ -11,6 +11,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/portal' },
@@ -89,7 +90,14 @@ export function ClientSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border space-y-1">
+        <div className={cn(
+          "flex items-center gap-3 px-3 py-2",
+          collapsed && "justify-center px-2"
+        )}>
+          <ThemeToggle />
+          {!collapsed && <span className="text-sm text-muted-foreground">Theme</span>}
+        </div>
         <button
           onClick={handleSignOut}
           className={cn(
