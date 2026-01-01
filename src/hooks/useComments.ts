@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Comment } from '@/types/comment';
 import { logActivity } from './useActivities';
+import { sendNotification, getClientEmailForProject } from '@/lib/notifications';
 
 const mapDbToComment = (row: any): Comment => ({
   id: row.id,
@@ -77,7 +78,7 @@ export function useCreateComment() {
       if (error) throw error;
       return mapDbToComment(data);
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['comments', variables.projectId, variables.taskId] });
       
       // Log activity for project-level comments only
@@ -89,6 +90,23 @@ export function useCreateComment() {
           description: data.content.substring(0, 100) + (data.content.length > 100 ? '...' : ''),
           visibleToClient: variables.visibleToClient,
         });
+      }
+
+      // Send email notification for visible comments
+      if (variables.visibleToClient !== false) {
+        const clientInfo = await getClientEmailForProject(variables.projectId);
+        if (clientInfo) {
+          sendNotification({
+            type: 'comment_added',
+            projectId: variables.projectId,
+            projectName: clientInfo.projectName,
+            clientEmail: clientInfo.email,
+            details: {
+              commentPreview: data.content.substring(0, 200) + (data.content.length > 200 ? '...' : ''),
+              commentAuthor: data.userName || data.userEmail || 'Team member',
+            },
+          });
+        }
       }
     },
   });

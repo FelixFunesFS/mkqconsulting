@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Project, ProjectStatus } from '@/types/project';
 import { logActivity } from './useActivities';
+import { sendNotification, getClientEmailForProject } from '@/lib/notifications';
 
 // Map database row to Project type
 const mapDbToProject = (row: any): Project => ({
@@ -98,10 +99,10 @@ export function useUpdateProject() {
       if (error) throw error;
       return { project: mapDbToProject(data), previousStatus: current?.status };
     },
-    onSuccess: ({ project, previousStatus }) => {
+    onSuccess: async ({ project, previousStatus }) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       
-      // Log activity if status changed
+      // Log activity and send notification if status changed
       if (project.status && previousStatus && project.status !== previousStatus) {
         logActivity({
           projectId: project.id,
@@ -109,6 +110,18 @@ export function useUpdateProject() {
           title: `Project moved to ${project.status.replace('_', ' ')}`,
           metadata: { previousStatus, newStatus: project.status },
         });
+
+        // Send email notification
+        const clientInfo = await getClientEmailForProject(project.id);
+        if (clientInfo) {
+          sendNotification({
+            type: 'project_status_changed',
+            projectId: project.id,
+            projectName: clientInfo.projectName,
+            clientEmail: clientInfo.email,
+            details: { previousStatus, newStatus: project.status },
+          });
+        }
       }
     },
   });

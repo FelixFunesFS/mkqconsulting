@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ProjectDocument, DocumentCategory } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
 import { logActivity } from './useActivities';
+import { sendNotification, getClientEmailForProject } from '@/lib/notifications';
 
 interface DbDocument {
   id: string;
@@ -102,7 +103,7 @@ export function useUploadDocument() {
       if (error) throw error;
       return mapDbToDocument(data as DbDocument);
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['documents', variables.projectId] });
       toast({ title: 'Document uploaded successfully' });
       
@@ -113,6 +114,30 @@ export function useUploadDocument() {
         title: `Uploaded: ${data.name}`,
         metadata: { documentId: data.id, category: data.category },
       });
+
+      // Send email notification for visible documents
+      if (variables.visibleToClient !== false) {
+        const clientInfo = await getClientEmailForProject(variables.projectId);
+        if (clientInfo) {
+          const { data: { user } } = await supabase.auth.getUser();
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', user?.id || '')
+            .single();
+
+          sendNotification({
+            type: 'document_uploaded',
+            projectId: variables.projectId,
+            projectName: clientInfo.projectName,
+            clientEmail: clientInfo.email,
+            details: {
+              documentName: data.name,
+              uploaderName: profile?.full_name || profile?.email || 'Team member',
+            },
+          });
+        }
+      }
     },
     onError: (error) => {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
