@@ -18,9 +18,9 @@ export function ProtectedRoute({
   const { hasRole, loading: roleLoading, isAdmin, isClient } = useUserRole();
   const location = useLocation();
 
-  const loading = authLoading || (isAuthenticated && roleLoading);
-
-  if (loading) {
+  // Always wait for BOTH auth and role loading to complete before rendering anything
+  // This prevents the flash of admin content for clients
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
