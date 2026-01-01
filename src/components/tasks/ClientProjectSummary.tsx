@@ -6,7 +6,12 @@ import {
   Circle, 
   Loader2,
   Play,
-  ListTodo
+  ListTodo,
+  Sparkles,
+  Palette,
+  Code2,
+  Eye,
+  Rocket
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +21,35 @@ interface ClientProjectSummaryProps {
 }
 
 const phases = ['discovery', 'design', 'development', 'review', 'published'] as const;
+
+// Friendly descriptions for each phase
+const phaseDescriptions: Record<string, { active: string; complete: string; icon: typeof Sparkles }> = {
+  discovery: {
+    active: "We're learning about your business and goals",
+    complete: "Discovery complete - we understand your vision",
+    icon: Sparkles,
+  },
+  design: {
+    active: "Creating your visual mockups and layouts",
+    complete: "Design approved and ready to build",
+    icon: Palette,
+  },
+  development: {
+    active: "Building your website with care",
+    complete: "Development complete - site is built",
+    icon: Code2,
+  },
+  review: {
+    active: "Final review and quality checks",
+    complete: "All checks passed - ready to launch",
+    icon: Eye,
+  },
+  published: {
+    active: "Preparing for launch",
+    complete: "Your site is live!",
+    icon: Rocket,
+  },
+};
 
 interface PhaseStatus {
   phase: string;
@@ -35,50 +69,87 @@ function getPhaseStatus(tasks: Task[]): PhaseStatus['status'] {
   return 'not_started';
 }
 
-function PhaseCard({ phase }: { phase: PhaseStatus }) {
+function PhaseTimelineItem({ phase, isLast, isCurrent }: { phase: PhaseStatus; isLast: boolean; isCurrent: boolean }) {
+  const description = phaseDescriptions[phase.phase];
+  const Icon = description?.icon || Circle;
+  
   const statusConfig = {
     not_started: { 
-      icon: Circle, 
-      color: 'text-muted-foreground', 
-      bg: 'bg-muted',
-      label: 'Not Started'
+      dotColor: 'bg-muted-foreground/30', 
+      lineColor: 'bg-muted-foreground/20',
+      textColor: 'text-muted-foreground',
     },
     in_progress: { 
-      icon: Play, 
-      color: 'text-blue-500', 
-      bg: 'bg-blue-500/10',
-      label: 'In Progress'
+      dotColor: 'bg-primary', 
+      lineColor: 'bg-primary/30',
+      textColor: 'text-foreground',
     },
     complete: { 
-      icon: CheckCircle2, 
-      color: 'text-emerald-500', 
-      bg: 'bg-emerald-500/10',
-      label: 'Complete'
+      dotColor: 'bg-emerald-500', 
+      lineColor: 'bg-emerald-500/50',
+      textColor: 'text-emerald-700 dark:text-emerald-400',
     },
   };
 
   const config = statusConfig[phase.status];
-  const Icon = config.icon;
   const progress = phase.total > 0 ? Math.round((phase.completed / phase.total) * 100) : 0;
 
   return (
-    <div className={cn(
-      "p-4 rounded-lg border transition-colors",
-      phase.status === 'complete' && "bg-emerald-500/5 border-emerald-500/20",
-      phase.status === 'in_progress' && "bg-blue-500/5 border-blue-500/20",
-      phase.status === 'not_started' && "bg-muted/30"
-    )}>
-      <div className="flex items-center justify-between mb-2">
-        <h4 className="font-medium text-sm">{phase.label}</h4>
-        <div className={cn("p-1 rounded-full", config.bg)}>
-          <Icon className={cn("h-4 w-4", config.color)} />
+    <div className="flex gap-4">
+      {/* Timeline indicator */}
+      <div className="flex flex-col items-center">
+        <div className={cn(
+          "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+          phase.status === 'complete' && "bg-emerald-500/10",
+          phase.status === 'in_progress' && "bg-primary/10 ring-2 ring-primary ring-offset-2 ring-offset-background",
+          phase.status === 'not_started' && "bg-muted"
+        )}>
+          {phase.status === 'complete' ? (
+            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+          ) : phase.status === 'in_progress' ? (
+            <Play className="h-4 w-4 text-primary fill-primary" />
+          ) : (
+            <Circle className="h-4 w-4 text-muted-foreground" />
+          )}
         </div>
+        {!isLast && (
+          <div className={cn("w-0.5 flex-1 my-2 min-h-[24px]", config.lineColor)} />
+        )}
       </div>
-      <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-        <span>{config.label}</span>
-        <span>{phase.completed}/{phase.total} tasks</span>
+
+      {/* Content */}
+      <div className={cn("flex-1 pb-6", isLast && "pb-0")}>
+        <div className="flex items-center gap-2 mb-1">
+          <h4 className={cn("font-medium", config.textColor)}>{phase.label}</h4>
+          <Icon className={cn("h-4 w-4", config.textColor)} />
+        </div>
+        
+        <p className="text-sm text-muted-foreground mb-2">
+          {phase.status === 'complete' 
+            ? description?.complete 
+            : phase.status === 'in_progress' 
+              ? description?.active 
+              : `Coming up next`}
+        </p>
+
+        {/* Show progress only for in_progress phase */}
+        {phase.status === 'in_progress' && (
+          <div className="mt-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+              <span>Progress</span>
+              <span>{phase.completed} of {phase.total} tasks</span>
+            </div>
+            <Progress value={progress} className="h-1.5" />
+          </div>
+        )}
+
+        {/* Compact info for completed phases */}
+        {phase.status === 'complete' && (
+          <span className="text-xs text-emerald-600 dark:text-emerald-400">
+            ✓ {phase.total} tasks completed
+          </span>
+        )}
       </div>
-      <Progress value={progress} className="h-1.5" />
     </div>
   );
 }
@@ -120,38 +191,69 @@ export function ClientProjectSummary({ tasks, isLoading }: ClientProjectSummaryP
       inProgress,
       status: getPhaseStatus(phaseTasks),
     };
-  }).filter(p => p.total > 0); // Only show phases with tasks
+  }).filter(p => p.total > 0);
 
   // Find current phase
-  const currentPhase = phaseStatuses.find(p => p.status === 'in_progress') 
-    || phaseStatuses.find(p => p.status === 'not_started');
+  const currentPhaseIndex = phaseStatuses.findIndex(p => p.status === 'in_progress');
+  const currentPhase = currentPhaseIndex >= 0 ? phaseStatuses[currentPhaseIndex] : null;
+
+  // Get friendly status message
+  const getStatusMessage = () => {
+    if (overallProgress === 100) return "Your project is complete! 🎉";
+    if (currentPhase) return phaseDescriptions[currentPhase.phase]?.active || "Work in progress";
+    return "Getting started";
+  };
 
   return (
     <div className="space-y-6">
-      {/* Overall Progress */}
-      <div className="p-4 rounded-lg bg-muted/50 border">
-        <div className="flex items-center justify-between mb-2">
+      {/* Overall Progress Header */}
+      <div className={cn(
+        "p-5 rounded-xl border transition-all",
+        overallProgress === 100 
+          ? "bg-emerald-500/5 border-emerald-500/20" 
+          : "bg-gradient-to-br from-primary/5 to-transparent border-primary/10"
+      )}>
+        <div className="flex items-start justify-between mb-3">
           <div>
-            <span className="text-sm font-medium">Overall Progress</span>
+            <h3 className="font-semibold text-lg">{getStatusMessage()}</h3>
             {currentPhase && (
-              <span className="ml-2 text-xs text-muted-foreground">
-                • Currently in {currentPhase.label}
-              </span>
+              <p className="text-sm text-muted-foreground mt-1">
+                Currently in the {currentPhase.label.toLowerCase()} phase
+              </p>
             )}
           </div>
-          <span className="text-2xl font-bold">{overallProgress}%</span>
+          <div className={cn(
+            "text-3xl font-bold",
+            overallProgress === 100 ? "text-emerald-600 dark:text-emerald-400" : "text-primary"
+          )}>
+            {overallProgress}%
+          </div>
         </div>
-        <Progress value={overallProgress} className="h-2 mb-2" />
-        <p className="text-xs text-muted-foreground">
+        <Progress 
+          value={overallProgress} 
+          className={cn(
+            "h-2",
+            overallProgress === 100 && "[&>div]:bg-emerald-500"
+          )} 
+        />
+        <p className="text-xs text-muted-foreground mt-2">
           {totalCompleted} of {tasks.length} tasks complete
         </p>
       </div>
 
-      {/* Phase Progress Grid */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {phaseStatuses.map(phase => (
-          <PhaseCard key={phase.phase} phase={phase} />
-        ))}
+      {/* Phase Timeline */}
+      <div className="px-2">
+        <h4 className="text-sm font-medium text-muted-foreground mb-4">Project Timeline</h4>
+        <div>
+          {phaseStatuses.map((phase, index) => (
+            <PhaseTimelineItem 
+              key={phase.phase} 
+              phase={phase}
+              isLast={index === phaseStatuses.length - 1}
+              isCurrent={phase.status === 'in_progress'}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
