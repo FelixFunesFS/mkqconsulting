@@ -150,7 +150,10 @@ export function ClientTaskList({ tasks, projectId, isLoading, maxHeight = '500px
       </div>
 
       {/* Tasks by phase - Scrollable */}
-      <div className="flex-1 min-h-0 overflow-hidden" style={{ maxHeight }}>
+      <div 
+        className="flex-1 min-h-0 overflow-hidden"
+        style={maxHeight === '100%' ? undefined : { maxHeight }}
+      >
         <ScrollArea className="h-full">
           <div className="space-y-6 pr-4">
             {phases.map(phase => {

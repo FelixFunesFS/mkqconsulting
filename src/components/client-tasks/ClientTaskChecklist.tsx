@@ -76,6 +76,9 @@ export function ClientTaskChecklist({
     );
   }
 
+  // Determine if we should use flex fill or fixed height
+  const useFlexFill = maxHeight === '100%';
+
   return (
     <div className="flex flex-col h-full">
       {/* Progress Summary - Fixed Position */}
@@ -90,7 +93,10 @@ export function ClientTaskChecklist({
       </div>
 
       {/* Scrollable Task Groups */}
-      <div className="flex-1 min-h-0 overflow-hidden" style={{ maxHeight }}>
+      <div 
+        className="flex-1 min-h-0 overflow-hidden"
+        style={useFlexFill ? undefined : { maxHeight }}
+      >
         <ScrollArea className="h-full">
           <div className="space-y-6 pr-4">
             {CATEGORY_ORDER.map((category) => {
