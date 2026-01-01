@@ -129,7 +129,7 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
         <ClientTaskChecklist
           tasks={tasks}
           isAdmin={true}
-          maxHeight="calc(85vh - 350px)"
+          maxHeight="calc(60vh - 100px)"
           onStatusChange={handleStatusChange}
           onNotesChange={handleNotesChange}
           onEdit={handleEdit}

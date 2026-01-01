@@ -126,9 +126,9 @@ export function ClientTaskList({ tasks, projectId, isLoading, maxHeight = '500px
   const overallProgress = Math.round((totalCompleted / tasks.length) * 100);
 
   return (
-    <div className="space-y-4">
-      {/* Overall progress summary */}
-      <div className="p-4 rounded-lg bg-muted/50 border">
+    <div className="flex flex-col h-full">
+      {/* Overall progress summary - Fixed */}
+      <div className="p-4 rounded-lg bg-muted/50 border shrink-0 mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">Overall Progress</span>
           <span className="text-sm text-muted-foreground">
@@ -149,16 +149,18 @@ export function ClientTaskList({ tasks, projectId, isLoading, maxHeight = '500px
         </div>
       </div>
 
-      {/* Tasks by phase */}
-      <ScrollArea style={{ maxHeight }} className="pr-4">
-        <div className="space-y-6">
-          {phases.map(phase => {
-            const phaseTasks = tasksByPhase[phase];
-            if (!phaseTasks) return null;
-            return <PhaseSection key={phase} phase={phase} tasks={phaseTasks} />;
-          })}
-        </div>
-      </ScrollArea>
+      {/* Tasks by phase - Scrollable */}
+      <div className="flex-1 min-h-0 overflow-hidden" style={{ maxHeight }}>
+        <ScrollArea className="h-full">
+          <div className="space-y-6 pr-4">
+            {phases.map(phase => {
+              const phaseTasks = tasksByPhase[phase];
+              if (!phaseTasks) return null;
+              return <PhaseSection key={phase} phase={phase} tasks={phaseTasks} />;
+            })}
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   );
 }
