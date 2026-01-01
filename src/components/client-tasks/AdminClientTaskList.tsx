@@ -111,7 +111,7 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
       </div>
 
       {/* Task List - Fills remaining space */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
