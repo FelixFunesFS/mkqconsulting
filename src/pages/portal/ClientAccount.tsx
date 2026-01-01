@@ -106,7 +106,7 @@ export default function ClientAccount() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen flex-col md:flex-row bg-background">
         <ClientSidebar />
         <main className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -116,12 +116,12 @@ export default function ClientAccount() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col md:flex-row bg-background">
       <ClientSidebar />
-      <main className="flex-1 overflow-auto p-8">
-        <div className="max-w-2xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Account Settings</h1>
+      <main className="flex-1 overflow-auto p-4 md:p-8">
+        <div className="max-w-2xl mx-auto md:mx-0">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Account Settings</h1>
             <p className="text-muted-foreground mt-1">
               Manage your profile and contact information
             </p>

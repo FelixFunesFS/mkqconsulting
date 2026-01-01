@@ -1,17 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { 
   LayoutDashboard, 
   FolderKanban, 
   User,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  Menu
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/portal' },
@@ -20,10 +23,26 @@ const navItems = [
 ];
 
 export function ClientSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 1024;
+  });
+  const [sheetOpen, setSheetOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
+
+  // Update collapsed state on resize for tablet
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024 && window.innerWidth >= 768) {
+        setCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -37,10 +56,96 @@ export function ClientSidebar() {
     return location.pathname.startsWith(path);
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setSheetOpen(false);
+  };
+
+  const NavigationContent = ({ onNavigate }: { onNavigate: (path: string) => void }) => (
+    <>
+      <nav className="flex-1 p-3 space-y-1">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.path);
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.path)}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                active 
+                  ? "bg-primary/10 text-primary" 
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              <Icon className="h-5 w-5 shrink-0" />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="p-3 border-t border-border space-y-1">
+        <div className="flex items-center gap-3 px-3 py-2">
+          <ThemeToggle />
+          <span className="text-sm text-muted-foreground">Theme</span>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+        >
+          <LogOut className="h-5 w-5 shrink-0" />
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </>
+  );
+
+  // Mobile: Header bar with sheet drawer
+  if (isMobile) {
+    return (
+      <>
+        <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-card border-b border-border flex items-center justify-between px-4">
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-0 flex flex-col">
+              <div className="p-4 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="text-lg font-bold text-primary">W</span>
+                  </div>
+                  <span className="font-semibold text-foreground">Client Portal</span>
+                </div>
+              </div>
+              <NavigationContent onNavigate={handleNavigation} />
+            </SheetContent>
+          </Sheet>
+          
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <span className="text-lg font-bold text-primary">W</span>
+            </div>
+            <span className="font-semibold text-foreground">Client Portal</span>
+          </div>
+          
+          <div className="w-9" /> {/* Spacer for centering */}
+        </header>
+        {/* Spacer for fixed header */}
+        <div className="h-14 shrink-0" />
+      </>
+    );
+  }
+
+  // Desktop: Collapsible sidebar
   return (
     <aside 
       className={cn(
-        "h-screen bg-card border-r border-border flex flex-col transition-all duration-300",
+        "h-screen bg-card border-r border-border flex flex-col transition-all duration-300 shrink-0",
         collapsed ? "w-16" : "w-64"
       )}
     >
