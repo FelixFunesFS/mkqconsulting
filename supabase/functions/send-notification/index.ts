@@ -91,7 +91,7 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "notifications@resend.dev",
+        from: "MKQ Consulting <envision@mkqconsulting.com>",
         to: [clientEmail],
         subject,
         html: htmlContent,

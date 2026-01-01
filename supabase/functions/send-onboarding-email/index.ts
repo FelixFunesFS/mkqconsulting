@@ -142,7 +142,7 @@ serve(async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "MKQ Marketing <onboarding@resend.dev>",
+        from: "MKQ Consulting <envision@mkqconsulting.com>",
         to: [clientEmail],
         subject: `Welcome to ${projectName} - Your Task Checklist`,
         html: emailHtml,
