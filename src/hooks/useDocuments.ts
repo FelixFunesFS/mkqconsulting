@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ProjectDocument, DocumentCategory } from '@/types/document';
 import { useToast } from '@/hooks/use-toast';
+import { logActivity } from './useActivities';
 
 interface DbDocument {
   id: string;
@@ -101,9 +102,17 @@ export function useUploadDocument() {
       if (error) throw error;
       return mapDbToDocument(data as DbDocument);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['documents', variables.projectId] });
       toast({ title: 'Document uploaded successfully' });
+      
+      // Log activity
+      logActivity({
+        projectId: variables.projectId,
+        activityType: 'document_uploaded',
+        title: `Uploaded: ${data.name}`,
+        metadata: { documentId: data.id, category: data.category },
+      });
     },
     onError: (error) => {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
@@ -154,7 +163,7 @@ export function useDeleteDocument() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, filePath, projectId }: { id: string; filePath: string; projectId: string }) => {
+    mutationFn: async ({ id, filePath, projectId, fileName }: { id: string; filePath: string; projectId: string; fileName?: string }) => {
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('project-documents')
@@ -169,11 +178,18 @@ export function useDeleteDocument() {
         .eq('id', id);
 
       if (error) throw error;
-      return projectId;
+      return { projectId, fileName };
     },
-    onSuccess: (projectId) => {
+    onSuccess: ({ projectId, fileName }) => {
       queryClient.invalidateQueries({ queryKey: ['documents', projectId] });
       toast({ title: 'Document deleted' });
+      
+      // Log activity
+      logActivity({
+        projectId,
+        activityType: 'document_deleted',
+        title: `Deleted: ${fileName || 'document'}`,
+      });
     },
     onError: (error) => {
       toast({ title: 'Delete failed', description: error.message, variant: 'destructive' });

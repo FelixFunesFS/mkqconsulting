@@ -9,9 +9,10 @@ import { useProjects } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
 import { useDocuments } from '@/hooks/useDocuments';
 import { statusLabels, statusColors } from '@/types/project';
-import { ArrowLeft, CheckCircle2, Clock, Loader2, FileText, Upload } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, Loader2, FileText, Upload, History } from 'lucide-react';
 import { DocumentList } from '@/components/documents/DocumentList';
 import { DocumentUploader } from '@/components/documents/DocumentUploader';
+import { ActivityTimeline } from '@/components/activities/ActivityTimeline';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ClientProject() {
@@ -94,7 +95,7 @@ export default function ClientProject() {
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -147,6 +148,21 @@ export default function ClientProject() {
                   />
                 </TabsContent>
               </Tabs>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" /> Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ActivityTimeline 
+                projectId={project.id} 
+                isAdmin={false} 
+                maxHeight="300px" 
+              />
             </CardContent>
           </Card>
         </div>

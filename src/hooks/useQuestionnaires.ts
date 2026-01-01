@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { QuestionnaireData } from '@/types/project';
+import { logActivity } from './useActivities';
 
 // Map database snake_case to TypeScript camelCase
 const mapDbToQuestionnaire = (row: any): QuestionnaireData => ({
@@ -263,6 +264,14 @@ export const useUpsertQuestionnaire = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['questionnaire', variables.projectId] });
+      
+      // Log activity
+      logActivity({
+        projectId: variables.projectId,
+        activityType: 'questionnaire_updated',
+        title: 'Questionnaire updated',
+        description: 'Discovery questionnaire has been updated',
+      });
     },
   });
 };
