@@ -16,6 +16,7 @@ interface ClientTaskChecklistProps {
   onNotesChange?: (taskId: string, notes: string) => void;
   onEdit?: (task: ClientTask) => void;
   onDelete?: (taskId: string) => void;
+  onVisibilityChange?: (taskId: string, visible: boolean) => void;
 }
 
 export function ClientTaskChecklist({
@@ -27,6 +28,7 @@ export function ClientTaskChecklist({
   onNotesChange,
   onEdit,
   onDelete,
+  onVisibilityChange,
 }: ClientTaskChecklistProps) {
   const [showCompleted, setShowCompleted] = useState(false);
 
@@ -130,6 +132,7 @@ export function ClientTaskChecklist({
                   onNotesChange={onNotesChange}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  onVisibilityChange={onVisibilityChange}
                 />
               ))}
             </div>
@@ -138,6 +141,9 @@ export function ClientTaskChecklist({
       })}
     </div>
   );
+
+  // Count visible tasks for admin summary
+  const visibleCount = tasks.filter(t => t.visibleToClient).length;
 
   return (
     <div className="flex flex-col h-full">
@@ -148,12 +154,19 @@ export function ClientTaskChecklist({
       )}>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">{getProgressMessage()}</span>
-          <span className={cn(
-            "text-lg font-bold",
-            progress === 100 && "text-emerald-600 dark:text-emerald-400"
-          )}>
-            {completedCount}/{applicableCount}
-          </span>
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <span className="text-xs text-muted-foreground">
+                {visibleCount}/{tasks.length} visible
+              </span>
+            )}
+            <span className={cn(
+              "text-lg font-bold",
+              progress === 100 && "text-emerald-600 dark:text-emerald-400"
+            )}>
+              {completedCount}/{applicableCount}
+            </span>
+          </div>
         </div>
         <Progress 
           value={progress} 
