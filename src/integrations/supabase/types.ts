@@ -65,6 +65,116 @@ export type Database = {
           },
         ]
       }
+      client_task_templates: {
+        Row: {
+          category: Database["public"]["Enums"]["client_task_category"]
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          template_set: string
+          why_needed: string | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["client_task_category"]
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          template_set: string
+          why_needed?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["client_task_category"]
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          template_set?: string
+          why_needed?: string | null
+        }
+        Relationships: []
+      }
+      client_tasks: {
+        Row: {
+          admin_notes: string | null
+          category: Database["public"]["Enums"]["client_task_category"]
+          client_notes: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          source: string
+          status: Database["public"]["Enums"]["client_task_status"]
+          title: string
+          updated_at: string
+          visible_to_client: boolean
+          why_needed: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["client_task_category"]
+          client_notes?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          source?: string
+          status?: Database["public"]["Enums"]["client_task_status"]
+          title: string
+          updated_at?: string
+          visible_to_client?: boolean
+          why_needed?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["client_task_category"]
+          client_notes?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id?: string
+          source?: string
+          status?: Database["public"]["Enums"]["client_task_status"]
+          title?: string
+          updated_at?: string
+          visible_to_client?: boolean
+          why_needed?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           company_name: string | null
@@ -672,6 +782,16 @@ export type Database = {
         | "project_status_changed"
         | "note_added"
       app_role: "admin" | "client"
+      client_task_category:
+        | "access"
+        | "approvals"
+        | "content"
+        | "assets"
+        | "messaging"
+        | "incentives"
+        | "seo"
+        | "other"
+      client_task_status: "pending" | "completed" | "not_applicable"
       document_category:
         | "formation"
         | "tax"
@@ -827,6 +947,17 @@ export const Constants = {
         "note_added",
       ],
       app_role: ["admin", "client"],
+      client_task_category: [
+        "access",
+        "approvals",
+        "content",
+        "assets",
+        "messaging",
+        "incentives",
+        "seo",
+        "other",
+      ],
+      client_task_status: ["pending", "completed", "not_applicable"],
       document_category: [
         "formation",
         "tax",

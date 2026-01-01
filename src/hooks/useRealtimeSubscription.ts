@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
-type TableName = 'activities' | 'comments' | 'tasks';
+type TableName = 'activities' | 'comments' | 'tasks' | 'client_tasks';
 
 interface UseRealtimeSubscriptionOptions {
   table: TableName;

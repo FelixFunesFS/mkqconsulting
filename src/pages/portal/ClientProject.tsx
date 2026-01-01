@@ -8,14 +8,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useProjects } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useClientTasks, useUpdateClientTask } from '@/hooks/useClientTasks';
 import { statusLabels, statusColors } from '@/types/project';
-import { ArrowLeft, CheckCircle2, Clock, Loader2, FileText, Upload, History, MessageCircle, ListTodo } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, Loader2, FileText, Upload, History, MessageCircle, ListTodo, ClipboardCheck } from 'lucide-react';
 import { DocumentList } from '@/components/documents/DocumentList';
 import { DocumentUploader } from '@/components/documents/DocumentUploader';
 import { ActivityTimeline } from '@/components/activities/ActivityTimeline';
 import { CommentThread } from '@/components/comments/CommentThread';
 import { ClientTaskList } from '@/components/tasks/ClientTaskList';
+import { ClientTaskChecklist } from '@/components/client-tasks/ClientTaskChecklist';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
 
 export default function ClientProject() {
   const { id } = useParams();
@@ -23,6 +26,8 @@ export default function ClientProject() {
   const { data: projects, isLoading: projectsLoading } = useProjects();
   const { data: tasks, isLoading: tasksLoading } = useTasks(id);
   const { data: documents, isLoading: documentsLoading } = useDocuments(id || '');
+  const { data: clientTasks = [], isLoading: clientTasksLoading } = useClientTasks(id);
+  const updateClientTask = useUpdateClientTask();
   
   const project = projects?.find(p => p.id === id);
 
@@ -51,6 +56,49 @@ export default function ClientProject() {
   const completedTasks = tasks?.filter(t => t.status === 'completed').length || 0;
   const totalTasks = tasks?.length || 0;
 
+  const handleClientTaskStatusChange = async (
+    taskId: string,
+    status: 'pending' | 'completed' | 'not_applicable'
+  ) => {
+    if (!id) return;
+    try {
+      const completedAt = status === 'completed' ? new Date().toISOString() : null;
+      await updateClientTask.mutateAsync({
+        id: taskId,
+        projectId: id,
+        status,
+        completedAt,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update task status',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleClientTaskNotesChange = async (taskId: string, notes: string) => {
+    if (!id) return;
+    try {
+      await updateClientTask.mutateAsync({
+        id: taskId,
+        projectId: id,
+        clientNotes: notes,
+      });
+      toast({
+        title: 'Notes Saved',
+        description: 'Your notes have been saved.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to save notes',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       <ClientSidebar />
@@ -67,7 +115,28 @@ export default function ClientProject() {
           <Badge className={statusColors[project.status]}>{statusLabels[project.status]}</Badge>
         </div>
 
-        {/* Task List - Full Width */}
+        {/* Client Tasks Checklist - Full Width */}
+        {clientTasks.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardCheck className="h-5 w-5" /> Your Action Items
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ClientTaskChecklist
+                tasks={clientTasks}
+                isLoading={clientTasksLoading}
+                isAdmin={false}
+                maxHeight="400px"
+                onStatusChange={handleClientTaskStatusChange}
+                onNotesChange={handleClientTaskNotesChange}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Project Tasks - Full Width */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
