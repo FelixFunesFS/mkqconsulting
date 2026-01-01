@@ -87,9 +87,9 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
   };
 
   return (
-    <div className="space-y-4">
-      {/* Actions */}
-      <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex flex-col h-full">
+      {/* Actions - Fixed at top */}
+      <div className="flex items-center gap-2 flex-wrap shrink-0 mb-4">
         <Button
           variant="outline"
           size="sm"
@@ -110,32 +110,34 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
         )}
       </div>
 
-      {/* Task List */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : tasks.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground mb-4">
-            No client tasks yet. Apply a template to get started.
-          </p>
-          <Button onClick={() => setShowTemplateDialog(true)}>
-            <FileStack className="h-4 w-4 mr-2" />
-            Apply Template
-          </Button>
-        </div>
-      ) : (
-        <ClientTaskChecklist
-          tasks={tasks}
-          isAdmin={true}
-          maxHeight="calc(60vh - 100px)"
-          onStatusChange={handleStatusChange}
-          onNotesChange={handleNotesChange}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      )}
+      {/* Task List - Fills remaining space */}
+      <div className="flex-1 min-h-0">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="text-center py-12 border rounded-lg bg-muted/30">
+            <p className="text-muted-foreground mb-4">
+              No client tasks yet. Apply a template to get started.
+            </p>
+            <Button onClick={() => setShowTemplateDialog(true)}>
+              <FileStack className="h-4 w-4 mr-2" />
+              Apply Template
+            </Button>
+          </div>
+        ) : (
+          <ClientTaskChecklist
+            tasks={tasks}
+            isAdmin={true}
+            maxHeight="100%"
+            onStatusChange={handleStatusChange}
+            onNotesChange={handleNotesChange}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        )}
+      </div>
 
       <ApplyTemplateDialog
         projectId={projectId}

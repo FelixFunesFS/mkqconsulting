@@ -212,16 +212,14 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
             </TabsContent>
 
             <TabsContent value="client-tasks" className="flex-1 min-h-0 overflow-hidden mt-4">
-              <ScrollArea className="h-full pr-4">
-                {project && (
-                  <AdminClientTaskList
-                    projectId={project.id}
-                    projectName={project.businessName}
-                    clientEmail={projectClient?.email}
-                    clientName={projectClient?.name}
-                  />
-                )}
-              </ScrollArea>
+              {project && (
+                <AdminClientTaskList
+                  projectId={project.id}
+                  projectName={project.businessName}
+                  clientEmail={projectClient?.email}
+                  clientName={projectClient?.name}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="comments" className="flex-1 min-h-0 overflow-hidden mt-4">
