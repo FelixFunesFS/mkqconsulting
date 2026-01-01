@@ -93,10 +93,7 @@ export function ClientTaskChecklist({
       </div>
 
       {/* Scrollable Task Groups */}
-      <div 
-        className="flex-1 min-h-0 overflow-hidden"
-        style={useFlexFill ? undefined : { maxHeight }}
-      >
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="space-y-6 pr-4">
             {CATEGORY_ORDER.map((category) => {
