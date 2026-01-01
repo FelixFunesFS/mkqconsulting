@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          project_id: string
+          title: string
+          user_id: string | null
+          visible_to_client: boolean
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id: string
+          title: string
+          user_id?: string | null
+          visible_to_client?: boolean
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string
+          title?: string
+          user_id?: string | null
+          visible_to_client?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           company_name: string | null
@@ -556,6 +607,15 @@ export type Database = {
       }
     }
     Enums: {
+      activity_type:
+        | "document_uploaded"
+        | "document_deleted"
+        | "task_created"
+        | "task_completed"
+        | "task_status_changed"
+        | "questionnaire_updated"
+        | "project_status_changed"
+        | "note_added"
       app_role: "admin" | "client"
       document_category:
         | "formation"
@@ -701,6 +761,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_type: [
+        "document_uploaded",
+        "document_deleted",
+        "task_created",
+        "task_completed",
+        "task_status_changed",
+        "questionnaire_updated",
+        "project_status_changed",
+        "note_added",
+      ],
       app_role: ["admin", "client"],
       document_category: [
         "formation",

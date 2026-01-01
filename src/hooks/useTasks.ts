@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { logActivity } from './useActivities';
 
 // Map database row to Task type
 const mapDbToTask = (row: any): Task => ({
@@ -60,6 +61,18 @@ export function useUpdateTaskStatus() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', data.projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Log activity
+      const activityType = data.status === 'completed' ? 'task_completed' : 'task_status_changed';
+      const title = data.status === 'completed' 
+        ? `Completed: ${data.title}`
+        : `Task "${data.title}" moved to ${data.status.replace('_', ' ')}`;
+      logActivity({
+        projectId: data.projectId,
+        activityType,
+        title,
+        metadata: { taskId: data.id, status: data.status },
+      });
     },
   });
 }
@@ -134,6 +147,14 @@ export function useCreateTask() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', data.projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Log activity
+      logActivity({
+        projectId: data.projectId,
+        activityType: 'task_created',
+        title: `New task: ${data.title}`,
+        metadata: { taskId: data.id, phase: data.phase },
+      });
     },
   });
 }

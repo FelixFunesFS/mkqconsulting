@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Project, ProjectStatus } from '@/types/project';
+import { logActivity } from './useActivities';
 
 // Map database row to Project type
 const mapDbToProject = (row: any): Project => ({
@@ -80,6 +81,13 @@ export function useUpdateProject() {
 
   return useMutation({
     mutationFn: async ({ id, ...project }: Partial<Project> & { id: string }) => {
+      // Get current status before update
+      const { data: current } = await supabase
+        .from('projects')
+        .select('status')
+        .eq('id', id)
+        .single();
+      
       const { data, error } = await supabase
         .from('projects')
         .update(mapProjectToDb(project))
@@ -88,10 +96,20 @@ export function useUpdateProject() {
         .single();
 
       if (error) throw error;
-      return mapDbToProject(data);
+      return { project: mapDbToProject(data), previousStatus: current?.status };
     },
-    onSuccess: () => {
+    onSuccess: ({ project, previousStatus }) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Log activity if status changed
+      if (project.status && previousStatus && project.status !== previousStatus) {
+        logActivity({
+          projectId: project.id,
+          activityType: 'project_status_changed',
+          title: `Project moved to ${project.status.replace('_', ' ')}`,
+          metadata: { previousStatus, newStatus: project.status },
+        });
+      }
     },
   });
 }

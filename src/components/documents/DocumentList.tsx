@@ -67,6 +67,7 @@ function DocumentItem({ doc, projectId, isAdmin }: { doc: ProjectDocument; proje
       id: doc.id,
       filePath: doc.filePath,
       projectId,
+      fileName: doc.name,
     });
     setDeleteDialogOpen(false);
   };
