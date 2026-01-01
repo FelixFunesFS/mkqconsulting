@@ -3,7 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { ClientTask } from '@/types/clientTask';
-import { ChevronDown, ChevronUp, Check, Minus, MessageSquare } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, Minus, MessageSquare, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ClientTaskItemProps {
@@ -13,6 +13,7 @@ interface ClientTaskItemProps {
   onNotesChange?: (taskId: string, notes: string) => void;
   onEdit?: (task: ClientTask) => void;
   onDelete?: (taskId: string) => void;
+  onVisibilityChange?: (taskId: string, visible: boolean) => void;
 }
 
 export function ClientTaskItem({
@@ -22,6 +23,7 @@ export function ClientTaskItem({
   onNotesChange,
   onEdit,
   onDelete,
+  onVisibilityChange,
 }: ClientTaskItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [notes, setNotes] = useState(task.clientNotes || '');
@@ -48,13 +50,16 @@ export function ClientTaskItem({
 
   const hasNotes = task.clientNotes && task.clientNotes.trim().length > 0;
 
+  const isHidden = !task.visibleToClient;
+
   return (
     <div
       className={cn(
         'border rounded-lg p-4 transition-all',
         isCompleted && 'bg-emerald-500/5 border-emerald-500/20',
         isNA && 'bg-muted/30 border-muted opacity-60',
-        !isCompleted && !isNA && 'hover:border-primary/30'
+        !isCompleted && !isNA && 'hover:border-primary/30',
+        isAdmin && isHidden && 'opacity-50 border-dashed'
       )}
     >
       <div className="flex items-start gap-3">
@@ -111,6 +116,21 @@ export function ClientTaskItem({
         </div>
 
         <div className="flex items-center gap-1">
+          {/* Admin visibility toggle */}
+          {isAdmin && onVisibilityChange && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onVisibilityChange(task.id, !task.visibleToClient)}
+              className={cn(
+                "h-8 w-8",
+                isHidden ? "text-muted-foreground" : "text-primary"
+              )}
+              title={isHidden ? "Hidden from client - Click to show" : "Visible to client - Click to hide"}
+            >
+              {isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          )}
           {/* Show N/A option on hover or when expanded - only for non-completed items */}
           {!isCompleted && (
             <Button

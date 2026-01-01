@@ -86,6 +86,28 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
     }
   };
 
+  const handleVisibilityChange = async (taskId: string, visible: boolean) => {
+    try {
+      await updateTask.mutateAsync({
+        id: taskId,
+        projectId,
+        visibleToClient: visible,
+      });
+      toast({
+        title: visible ? 'Task Visible' : 'Task Hidden',
+        description: visible 
+          ? 'Client can now see this task' 
+          : 'Task hidden from client view',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update visibility',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Actions - Fixed at top */}
@@ -135,6 +157,7 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
             onNotesChange={handleNotesChange}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onVisibilityChange={handleVisibilityChange}
           />
         )}
       </div>
