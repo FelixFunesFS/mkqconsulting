@@ -29,12 +29,12 @@ export function useUploadClientLogo() {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL with cache-busting timestamp
       const { data: urlData } = supabase.storage
         .from(BUCKET_NAME)
         .getPublicUrl(filePath);
 
-      const logoUrl = urlData.publicUrl;
+      const logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
       // Update client record with new logo URL
       const { error: updateError } = await supabase
