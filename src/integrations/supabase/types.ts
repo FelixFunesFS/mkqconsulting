@@ -355,6 +355,7 @@ export type Database = {
           is_active: boolean
           project_id: string
           start_date: string | null
+          status: Database["public"]["Enums"]["revenue_status"]
           type: Database["public"]["Enums"]["revenue_type"]
         }
         Insert: {
@@ -365,6 +366,7 @@ export type Database = {
           is_active?: boolean
           project_id: string
           start_date?: string | null
+          status?: Database["public"]["Enums"]["revenue_status"]
           type: Database["public"]["Enums"]["revenue_type"]
         }
         Update: {
@@ -375,6 +377,7 @@ export type Database = {
           is_active?: boolean
           project_id?: string
           start_date?: string | null
+          status?: Database["public"]["Enums"]["revenue_status"]
           type?: Database["public"]["Enums"]["revenue_type"]
         }
         Relationships: [
@@ -847,6 +850,7 @@ export type Database = {
         | "development"
         | "review"
         | "published"
+      revenue_status: "active" | "pending" | "paused" | "cancelled"
       revenue_type: "monthly" | "one_time"
       task_priority: "low" | "medium" | "high" | "critical"
       task_source: "ai_generated" | "manual" | "template"
@@ -1016,6 +1020,7 @@ export const Constants = {
         "review",
         "published",
       ],
+      revenue_status: ["active", "pending", "paused", "cancelled"],
       revenue_type: ["monthly", "one_time"],
       task_priority: ["low", "medium", "high", "critical"],
       task_source: ["ai_generated", "manual", "template"],

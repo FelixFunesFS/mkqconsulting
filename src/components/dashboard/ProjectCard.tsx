@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo, UserPlus, User, FileText } from 'lucide-react';
+import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo, UserPlus, User, FileText, Clock } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,13 +54,16 @@ export function ProjectCard({
   const linkedClient = clients?.find(c => c.id === project.clientId);
   
   // Calculate revenue totals
-  const monthlyTotal = revenues
-    .filter((r) => r.type === 'monthly' && r.is_active)
+  const activeMonthlyTotal = revenues
+    .filter((r) => r.type === 'monthly' && r.status === 'active')
+    .reduce((sum, r) => sum + Number(r.amount), 0);
+  const pendingMonthlyTotal = revenues
+    .filter((r) => r.type === 'monthly' && r.status === 'pending')
     .reduce((sum, r) => sum + Number(r.amount), 0);
   const oneTimeTotal = revenues
     .filter((r) => r.type === 'one_time')
     .reduce((sum, r) => sum + Number(r.amount), 0);
-  const hasRevenue = monthlyTotal > 0 || oneTimeTotal > 0;
+  const hasRevenue = activeMonthlyTotal > 0 || pendingMonthlyTotal > 0 || oneTimeTotal > 0;
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -215,9 +218,15 @@ export function ProjectCard({
                 <div className="flex items-center justify-between cursor-default">
                   <span className="text-sm text-muted-foreground">Revenue</span>
                   <div className="flex items-center gap-2">
-                    {monthlyTotal > 0 && (
+                    {activeMonthlyTotal > 0 && (
                       <span className="font-display font-semibold text-success">
-                        ${monthlyTotal}/mo
+                        ${activeMonthlyTotal}/mo
+                      </span>
+                    )}
+                    {pendingMonthlyTotal > 0 && (
+                      <span className="flex items-center gap-1 text-sm text-warning">
+                        <Clock className="h-3 w-3" />
+                        +${pendingMonthlyTotal}
                       </span>
                     )}
                     {oneTimeTotal > 0 && (
@@ -229,19 +238,40 @@ export function ProjectCard({
                 </div>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs">
-                <div className="space-y-1 text-xs">
-                  {revenues.filter(r => r.type === 'monthly' && r.is_active).map((r) => (
-                    <div key={r.id} className="flex justify-between gap-4">
-                      <span className="text-muted-foreground">{r.description || 'Monthly'}</span>
-                      <span>${Number(r.amount)}/mo</span>
+                <div className="space-y-2 text-xs">
+                  {revenues.filter(r => r.type === 'monthly' && r.status === 'active').length > 0 && (
+                    <div className="space-y-1">
+                      <div className="font-medium text-success">Active Monthly</div>
+                      {revenues.filter(r => r.type === 'monthly' && r.status === 'active').map((r) => (
+                        <div key={r.id} className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">{r.description || 'Monthly'}</span>
+                          <span>${Number(r.amount)}/mo</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                  {revenues.filter(r => r.type === 'one_time').map((r) => (
-                    <div key={r.id} className="flex justify-between gap-4">
-                      <span className="text-muted-foreground">{r.description || 'One-time'}</span>
-                      <span>${Number(r.amount)}</span>
+                  )}
+                  {revenues.filter(r => r.type === 'monthly' && r.status === 'pending').length > 0 && (
+                    <div className="space-y-1">
+                      <div className="font-medium text-warning">Pending Monthly</div>
+                      {revenues.filter(r => r.type === 'monthly' && r.status === 'pending').map((r) => (
+                        <div key={r.id} className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">{r.description || 'Monthly'}</span>
+                          <span>${Number(r.amount)}/mo</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  {revenues.filter(r => r.type === 'one_time').length > 0 && (
+                    <div className="space-y-1">
+                      <div className="font-medium">One-Time</div>
+                      {revenues.filter(r => r.type === 'one_time').map((r) => (
+                        <div key={r.id} className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">{r.description || 'One-time'}</span>
+                          <span>${Number(r.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </TooltipContent>
             </Tooltip>
