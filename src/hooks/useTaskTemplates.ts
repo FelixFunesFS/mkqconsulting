@@ -86,18 +86,8 @@ export function useApplyTemplates() {
 
       if (insertError) throw insertError;
 
-      // Update project total_tasks count
-      const { data: taskCount } = await supabase
-        .from('tasks')
-        .select('id', { count: 'exact' })
-        .eq('project_id', projectId);
-
-      if (taskCount) {
-        await supabase
-          .from('projects')
-          .update({ total_tasks: taskCount.length })
-          .eq('id', projectId);
-      }
+      // Note: Project stats (total_tasks, tasks_completed, progress) are now
+      // automatically updated by the update_project_task_stats database trigger
 
       return { added: newTemplates.length, skipped: templates.length - newTemplates.length };
     },
