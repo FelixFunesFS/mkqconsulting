@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
+import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ClientSelector } from './ClientSelector';
+import { RevenueManager } from './RevenueManager';
 
 interface ProjectEditDialogProps {
   project: Project | null;
@@ -58,7 +60,6 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
     targetLaunchDate: null as Date | null,
     websiteUrl: '',
     notes: '',
-    monthlyRevenue: '',
   });
 
   useEffect(() => {
@@ -71,7 +72,6 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
         targetLaunchDate: project.targetLaunchDate ? new Date(project.targetLaunchDate) : null,
         websiteUrl: project.websiteUrl || '',
         notes: project.notes || '',
-        monthlyRevenue: project.monthlyRevenue?.toString() || '',
       });
     }
   }, [project]);
@@ -89,7 +89,6 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
         targetLaunchDate: formData.targetLaunchDate?.toISOString().split('T')[0],
         websiteUrl: formData.websiteUrl || undefined,
         notes: formData.notes || undefined,
-        monthlyRevenue: formData.monthlyRevenue ? parseFloat(formData.monthlyRevenue) : undefined,
       });
 
       toast({
@@ -201,19 +200,6 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
             />
           </div>
 
-          {formData.status === 'published' && (
-            <div className="space-y-2">
-              <Label htmlFor="monthlyRevenue">Monthly Revenue ($)</Label>
-              <Input
-                id="monthlyRevenue"
-                type="number"
-                placeholder="0"
-                value={formData.monthlyRevenue}
-                onChange={(e) => setFormData({ ...formData, monthlyRevenue: e.target.value })}
-              />
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
@@ -223,6 +209,13 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             />
           </div>
+
+          {project && (
+            <>
+              <Separator className="my-4" />
+              <RevenueManager projectId={project.id} />
+            </>
+          )}
         </div>
 
         <DialogFooter>

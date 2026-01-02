@@ -346,6 +346,47 @@ export type Database = {
           },
         ]
       }
+      project_revenues: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          project_id: string
+          start_date: string | null
+          type: Database["public"]["Enums"]["revenue_type"]
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          project_id: string
+          start_date?: string | null
+          type: Database["public"]["Enums"]["revenue_type"]
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          project_id?: string
+          start_date?: string | null
+          type?: Database["public"]["Enums"]["revenue_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_revenues_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           business_name: string
@@ -806,6 +847,7 @@ export type Database = {
         | "development"
         | "review"
         | "published"
+      revenue_type: "monthly" | "one_time"
       task_priority: "low" | "medium" | "high" | "critical"
       task_source: "ai_generated" | "manual" | "template"
       task_status: "pending" | "in_progress" | "completed" | "blocked"
@@ -974,6 +1016,7 @@ export const Constants = {
         "review",
         "published",
       ],
+      revenue_type: ["monthly", "one_time"],
       task_priority: ["low", "medium", "high", "critical"],
       task_source: ["ai_generated", "manual", "template"],
       task_status: ["pending", "in_progress", "completed", "blocked"],

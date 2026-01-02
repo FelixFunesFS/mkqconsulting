@@ -3,13 +3,14 @@ import { StatsCard } from './StatsCard';
 import { ProjectCard } from './ProjectCard';
 import { ProjectPipeline } from './ProjectPipeline';
 import { DraggableProjectGrid } from './DraggableProjectGrid';
+import { useAllProjectRevenues } from '@/hooks/useProjectRevenues';
 import { 
   Globe, 
   Code2, 
   DollarSign, 
   TrendingUp,
   Clock,
-  AlertCircle
+  Banknote
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -29,14 +30,18 @@ export function Dashboard({
   onViewTasks,
   onViewDocuments,
 }: DashboardProps) {
+  const { data: allRevenues = [] } = useAllProjectRevenues();
+  
   const publishedProjects = projects.filter((p) => p.status === 'published');
   const inDevelopment = projects.filter((p) => p.status !== 'published');
-  const monthlyRevenue = publishedProjects.reduce((sum, p) => sum + (p.monthlyRevenue || 0), 0);
   
-  // Projects needing attention (in review or close to deadline)
-  const needsAttention = projects.filter(
-    (p) => p.status === 'review' || (p.progress >= 80 && p.status !== 'published')
-  );
+  // Calculate revenue totals from the new project_revenues table
+  const totalMonthlyRecurring = allRevenues
+    .filter((r) => r.type === 'monthly' && r.is_active)
+    .reduce((sum, r) => sum + Number(r.amount), 0);
+  const totalOneTime = allRevenues
+    .filter((r) => r.type === 'one_time')
+    .reduce((sum, r) => sum + Number(r.amount), 0);
 
   return (
     <div className="space-y-8">
@@ -65,18 +70,17 @@ export function Dashboard({
           variant="primary"
         />
         <StatsCard
-          title="Monthly Revenue"
-          value={`$${monthlyRevenue}`}
-          subtitle="Recurring hosting"
+          title="Monthly Recurring"
+          value={`$${totalMonthlyRecurring}`}
+          subtitle="Active subscriptions"
           icon={DollarSign}
           variant="accent"
-          trend={{ value: 12, label: 'vs last month' }}
         />
         <StatsCard
-          title="Needs Attention"
-          value={needsAttention.length}
-          subtitle="Ready for review"
-          icon={AlertCircle}
+          title="One-Time Revenue"
+          value={`$${totalOneTime}`}
+          subtitle="Total collected"
+          icon={Banknote}
           variant="default"
         />
       </div>
