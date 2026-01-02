@@ -9,6 +9,7 @@ export interface Client {
   companyName: string | null;
   phone: string | null;
   notes: string | null;
+  logoUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,6 +23,7 @@ function mapDbToClient(row: any): Client {
     companyName: row.company_name,
     phone: row.phone,
     notes: row.notes,
+    logoUrl: row.logo_url,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };

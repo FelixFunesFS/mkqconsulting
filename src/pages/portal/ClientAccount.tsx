@@ -12,7 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, User, Mail, Phone, Building2, Save } from 'lucide-react';
+import { Loader2, User, Mail, Phone, Building2, Save, ImageIcon } from 'lucide-react';
+import { ClientLogoUploader } from '@/components/clients/ClientLogoUploader';
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -126,6 +127,29 @@ export default function ClientAccount() {
               Manage your profile and contact information
             </p>
           </div>
+
+          {/* Logo Card */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                Brand Logo
+              </CardTitle>
+              <CardDescription>
+                Upload your company logo to personalize your portal
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {clientData && (
+                <ClientLogoUploader
+                  clientId={clientData.id}
+                  currentLogoUrl={clientData.logo_url}
+                  clientName={clientData.name}
+                  size="lg"
+                />
+              )}
+            </CardContent>
+          </Card>
 
           {/* Profile Card */}
           <Card>

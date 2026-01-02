@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   LayoutDashboard, 
   FolderKanban, 
@@ -15,6 +16,8 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/portal' },
@@ -31,7 +34,27 @@ export function ClientSidebar() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+
+  // Fetch client data for logo
+  const { data: clientData } = useQuery({
+    queryKey: ['client-sidebar-data', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, name, company_name, logo_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
+  const logoUrl = clientData?.logo_url;
+  const clientName = clientData?.company_name || clientData?.name || 'Client';
+  const clientInitial = clientName.charAt(0).toUpperCase();
 
   // Update collapsed state on resize for tablet
   useEffect(() => {
@@ -116,9 +139,12 @@ export function ClientSidebar() {
             <SheetContent side="left" className="w-64 p-0 flex flex-col">
               <div className="p-4 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-lg font-bold text-primary">W</span>
-                  </div>
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src={logoUrl || undefined} alt={clientName} />
+                    <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                      {clientInitial}
+                    </AvatarFallback>
+                  </Avatar>
                   <span className="font-semibold text-foreground">Client Portal</span>
                 </div>
               </div>
@@ -127,9 +153,12 @@ export function ClientSidebar() {
           </Sheet>
           
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <span className="text-lg font-bold text-primary">W</span>
-            </div>
+            <Avatar className="h-8 w-8 rounded-lg">
+              <AvatarImage src={logoUrl || undefined} alt={clientName} />
+              <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                {clientInitial}
+              </AvatarFallback>
+            </Avatar>
             <span className="font-semibold text-foreground">Client Portal</span>
           </div>
           
@@ -153,9 +182,12 @@ export function ClientSidebar() {
       <div className="p-4 border-b border-border flex items-center justify-between">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <span className="text-lg font-bold text-primary">W</span>
-            </div>
+            <Avatar className="h-8 w-8 rounded-lg">
+              <AvatarImage src={logoUrl || undefined} alt={clientName} />
+              <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                {clientInitial}
+              </AvatarFallback>
+            </Avatar>
             <span className="font-semibold text-foreground">Client Portal</span>
           </div>
         )}
