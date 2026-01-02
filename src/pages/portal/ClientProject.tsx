@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useProjects } from '@/hooks/useProjects';
 import { useTasks } from '@/hooks/useTasks';
 import { useDocuments } from '@/hooks/useDocuments';
@@ -50,11 +51,20 @@ export default function ClientProject() {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') || 'overview';
   
-  const { data: projects, isLoading: projectsLoading } = useProjects();
-  const { data: tasks, isLoading: tasksLoading } = useTasks(id);
-  const { data: documents, isLoading: documentsLoading } = useDocuments(id || '');
-  const { data: clientTasks = [], isLoading: clientTasksLoading } = useClientTasks(id);
+  const { data: projects, isLoading: projectsLoading, refetch: refetchProjects } = useProjects();
+  const { data: tasks, isLoading: tasksLoading, refetch: refetchTasks } = useTasks(id);
+  const { data: documents, isLoading: documentsLoading, refetch: refetchDocuments } = useDocuments(id || '');
+  const { data: clientTasks = [], isLoading: clientTasksLoading, refetch: refetchClientTasks } = useClientTasks(id);
   const updateClientTask = useUpdateClientTask();
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      refetchProjects(),
+      refetchTasks(),
+      refetchDocuments(),
+      refetchClientTasks(),
+    ]);
+  };
   
   const project = projects?.find(p => p.id === id);
 
@@ -135,7 +145,7 @@ export default function ClientProject() {
   return (
     <div className="flex min-h-screen w-full flex-col md:flex-row bg-background">
       <ClientSidebar />
-      <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
+      <PullToRefresh onRefresh={handleRefresh} className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
         <Button variant="ghost" onClick={() => navigate('/portal')} className="mb-4 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
         </Button>
@@ -356,7 +366,7 @@ export default function ClientProject() {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
+      </PullToRefresh>
     </div>
   );
 }
