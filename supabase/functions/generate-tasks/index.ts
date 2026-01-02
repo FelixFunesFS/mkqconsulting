@@ -286,20 +286,8 @@ Generate a JSON array of tasks. Return ONLY the JSON array, no other text. Examp
       throw new Error('Failed to save tasks to database');
     }
 
-    // Get total task count for the project and update
-    const { count: totalTaskCount } = await supabase
-      .from('tasks')
-      .select('*', { count: 'exact', head: true })
-      .eq('project_id', projectId);
-
-    const { error: updateError } = await supabase
-      .from('projects')
-      .update({ total_tasks: totalTaskCount || insertedTasks.length })
-      .eq('id', projectId);
-
-    if (updateError) {
-      console.error('Error updating project:', updateError);
-    }
+    // Note: Project stats (total_tasks, tasks_completed, progress) are now
+    // automatically updated by the update_project_task_stats database trigger
 
     console.log(`Successfully generated ${insertedTasks.length} tasks`);
 
