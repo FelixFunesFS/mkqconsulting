@@ -14,8 +14,15 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useClients } from '@/hooks/useClients';
 import { useUpdateProject } from '@/hooks/useProjects';
+import { useProjectRevenues } from '@/hooks/useProjectRevenues';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProjectCardProps {
@@ -40,10 +47,20 @@ export function ProjectCard({
   style,
 }: ProjectCardProps) {
   const { data: clients } = useClients();
+  const { data: revenues = [] } = useProjectRevenues(project.id);
   const updateProject = useUpdateProject();
   const { toast } = useToast();
   
   const linkedClient = clients?.find(c => c.id === project.clientId);
+  
+  // Calculate revenue totals
+  const monthlyTotal = revenues
+    .filter((r) => r.type === 'monthly' && r.is_active)
+    .reduce((sum, r) => sum + Number(r.amount), 0);
+  const oneTimeTotal = revenues
+    .filter((r) => r.type === 'one_time')
+    .reduce((sum, r) => sum + Number(r.amount), 0);
+  const hasRevenue = monthlyTotal > 0 || oneTimeTotal > 0;
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -189,15 +206,46 @@ export function ProjectCard({
         )}
       </div>
 
-      {/* Revenue for published */}
-      {project.status === 'published' && project.monthlyRevenue && (
+      {/* Revenue section */}
+      {hasRevenue && (
         <div className="pt-3 border-t border-border">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Monthly Revenue</span>
-            <span className="font-display font-semibold text-success">
-              ${project.monthlyRevenue}/mo
-            </span>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-between cursor-default">
+                  <span className="text-sm text-muted-foreground">Revenue</span>
+                  <div className="flex items-center gap-2">
+                    {monthlyTotal > 0 && (
+                      <span className="font-display font-semibold text-success">
+                        ${monthlyTotal}/mo
+                      </span>
+                    )}
+                    {oneTimeTotal > 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        + ${oneTimeTotal}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                <div className="space-y-1 text-xs">
+                  {revenues.filter(r => r.type === 'monthly' && r.is_active).map((r) => (
+                    <div key={r.id} className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">{r.description || 'Monthly'}</span>
+                      <span>${Number(r.amount)}/mo</span>
+                    </div>
+                  ))}
+                  {revenues.filter(r => r.type === 'one_time').map((r) => (
+                    <div key={r.id} className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">{r.description || 'One-time'}</span>
+                      <span>${Number(r.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       )}
     </div>
