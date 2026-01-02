@@ -169,7 +169,7 @@ export function ClientTaskChecklist({
           <AccordionItem
             key={category}
             value={category}
-            className="border rounded-lg px-3 bg-card"
+            className="border rounded-lg px-2 sm:px-3 bg-card"
           >
             <AccordionTrigger className="hover:no-underline py-3">
               <div className="flex items-center gap-2 flex-1">
@@ -192,12 +192,13 @@ export function ClientTaskChecklist({
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-2 pb-2">
+            <AccordionContent className="pt-1 pb-2">
+              <div className="divide-y divide-border/50">
                 {categoryTasks.map((task) => (
                   <ClientTaskItem
                     key={task.id}
                     task={task}
+                    compact={true}
                     isAdmin={isAdmin}
                     onStatusChange={onStatusChange}
                     onNotesChange={onNotesChange}

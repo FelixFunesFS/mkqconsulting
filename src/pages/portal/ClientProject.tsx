@@ -240,9 +240,9 @@ export default function ClientProject() {
 
             <Card>
               <CardContent className="py-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-muted">
+                    <div className="p-2 rounded-lg bg-muted shrink-0">
                       <HelpCircle className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
@@ -252,7 +252,11 @@ export default function ClientProject() {
                       </p>
                     </div>
                   </div>
-                  <Button variant="outline" onClick={() => navigate(`/portal/questionnaire/${project.id}`)}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full sm:w-auto shrink-0"
+                    onClick={() => navigate(`/portal/questionnaire/${project.id}`)}
+                  >
                     View Questionnaire
                   </Button>
                 </div>
