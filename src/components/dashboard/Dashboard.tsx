@@ -10,7 +10,8 @@ import {
   DollarSign, 
   TrendingUp,
   Clock,
-  Banknote
+  Banknote,
+  Timer
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -36,8 +37,11 @@ export function Dashboard({
   const inDevelopment = projects.filter((p) => p.status !== 'published');
   
   // Calculate revenue totals from the new project_revenues table
-  const totalMonthlyRecurring = allRevenues
-    .filter((r) => r.type === 'monthly' && r.is_active)
+  const totalActiveMonthly = allRevenues
+    .filter((r) => r.type === 'monthly' && r.status === 'active')
+    .reduce((sum, r) => sum + Number(r.amount), 0);
+  const totalPendingMonthly = allRevenues
+    .filter((r) => r.type === 'monthly' && r.status === 'pending')
     .reduce((sum, r) => sum + Number(r.amount), 0);
   const totalOneTime = allRevenues
     .filter((r) => r.type === 'one_time')
@@ -71,19 +75,27 @@ export function Dashboard({
         />
         <StatsCard
           title="Monthly Recurring"
-          value={`$${totalMonthlyRecurring}`}
+          value={`$${totalActiveMonthly}`}
           subtitle="Active subscriptions"
           icon={DollarSign}
           variant="accent"
         />
         <StatsCard
-          title="One-Time Revenue"
-          value={`$${totalOneTime}`}
-          subtitle="Total collected"
-          icon={Banknote}
+          title="Pending Monthly"
+          value={`+$${totalPendingMonthly}`}
+          subtitle="Expected soon"
+          icon={Timer}
           variant="default"
         />
       </div>
+      
+      {/* One-Time Revenue - shown if there's any */}
+      {totalOneTime > 0 && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Banknote className="h-4 w-4" />
+          <span>One-Time Revenue: ${totalOneTime}</span>
+        </div>
+      )}
 
       {/* Pipeline */}
       <ProjectPipeline projects={projects} />

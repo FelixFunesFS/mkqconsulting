@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export type RevenueType = 'monthly' | 'one_time';
+export type RevenueStatus = 'active' | 'pending' | 'paused' | 'cancelled';
 
 export interface ProjectRevenue {
   id: string;
@@ -11,6 +12,7 @@ export interface ProjectRevenue {
   description: string | null;
   start_date: string | null;
   is_active: boolean;
+  status: RevenueStatus;
   created_at: string;
 }
 
@@ -45,6 +47,7 @@ export function useAddRevenue() {
       description?: string;
       start_date?: string;
       is_active?: boolean;
+      status?: RevenueStatus;
     }) => {
       const { data, error } = await supabase
         .from('project_revenues')
@@ -55,6 +58,7 @@ export function useAddRevenue() {
           description: revenue.description || null,
           start_date: revenue.start_date || null,
           is_active: revenue.is_active ?? true,
+          status: revenue.status ?? 'active',
         })
         .select()
         .single();
@@ -85,6 +89,7 @@ export function useUpdateRevenue() {
       description?: string | null;
       start_date?: string | null;
       is_active?: boolean;
+      status?: RevenueStatus;
     }) => {
       const { data, error } = await supabase
         .from('project_revenues')

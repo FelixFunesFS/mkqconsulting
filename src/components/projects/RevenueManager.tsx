@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, RefreshCw, DollarSign, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, RefreshCw, DollarSign, Loader2, Clock, Pause, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import {
   useProjectRevenues,
@@ -12,6 +11,7 @@ import {
   useUpdateRevenue,
   useDeleteRevenue,
   RevenueType,
+  RevenueStatus,
   ProjectRevenue,
 } from '@/hooks/useProjectRevenues';
 import {
@@ -31,6 +31,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface RevenueManagerProps {
   projectId: string;
@@ -40,7 +47,14 @@ interface RevenueFormData {
   type: RevenueType;
   amount: string;
   description: string;
+  status: RevenueStatus;
 }
+
+const STATUS_OPTIONS: { value: RevenueStatus; label: string; icon: typeof CheckCircle2; color: string }[] = [
+  { value: 'active', label: 'Active', icon: CheckCircle2, color: 'text-success' },
+  { value: 'pending', label: 'Pending', icon: Clock, color: 'text-warning' },
+  { value: 'paused', label: 'Paused', icon: Pause, color: 'text-muted-foreground' },
+];
 
 export function RevenueManager({ projectId }: RevenueManagerProps) {
   const { data: revenues = [], isLoading } = useProjectRevenues(projectId);
@@ -57,18 +71,24 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
     type: 'monthly',
     amount: '',
     description: '',
+    status: 'active',
   });
 
   const monthlyRevenues = revenues.filter((r) => r.type === 'monthly');
   const oneTimeRevenues = revenues.filter((r) => r.type === 'one_time');
-  const totalMonthly = monthlyRevenues
-    .filter((r) => r.is_active)
-    .reduce((sum, r) => sum + Number(r.amount), 0);
+  
+  // Group monthly revenues by status
+  const activeMonthly = monthlyRevenues.filter((r) => r.status === 'active');
+  const pendingMonthly = monthlyRevenues.filter((r) => r.status === 'pending');
+  const pausedMonthly = monthlyRevenues.filter((r) => r.status === 'paused');
+  
+  const totalActiveMonthly = activeMonthly.reduce((sum, r) => sum + Number(r.amount), 0);
+  const totalPendingMonthly = pendingMonthly.reduce((sum, r) => sum + Number(r.amount), 0);
   const totalOneTime = oneTimeRevenues.reduce((sum, r) => sum + Number(r.amount), 0);
 
   const openAddDialog = (type: RevenueType) => {
     setAddType(type);
-    setFormData({ type, amount: '', description: '' });
+    setFormData({ type, amount: '', description: '', status: 'active' });
     setShowAddDialog(true);
   };
 
@@ -78,6 +98,7 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
       type: revenue.type,
       amount: revenue.amount.toString(),
       description: revenue.description || '',
+      status: revenue.status,
     });
   };
 
@@ -93,6 +114,7 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
         type: addType,
         amount: parseFloat(formData.amount),
         description: formData.description || undefined,
+        status: formData.status,
       });
       toast({ title: 'Revenue added' });
       setShowAddDialog(false);
@@ -110,6 +132,7 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
         project_id: projectId,
         amount: parseFloat(formData.amount),
         description: formData.description || null,
+        status: formData.status,
       });
       toast({ title: 'Revenue updated' });
       setEditingRevenue(null);
@@ -118,16 +141,37 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
     }
   };
 
-  const handleToggleActive = async (revenue: ProjectRevenue) => {
+  const handleStatusChange = async (revenue: ProjectRevenue, newStatus: RevenueStatus) => {
     try {
       await updateRevenue.mutateAsync({
         id: revenue.id,
         project_id: projectId,
-        is_active: !revenue.is_active,
+        status: newStatus,
+        is_active: newStatus === 'active',
       });
-      toast({ title: revenue.is_active ? 'Revenue paused' : 'Revenue activated' });
+      toast({ title: `Revenue ${newStatus}` });
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const getStatusIcon = (status: RevenueStatus) => {
+    const option = STATUS_OPTIONS.find((o) => o.value === status);
+    if (!option) return null;
+    const Icon = option.icon;
+    return <Icon className={`h-4 w-4 ${option.color}`} />;
+  };
+
+  const getStatusStyles = (status: RevenueStatus) => {
+    switch (status) {
+      case 'active':
+        return 'bg-card border-success/20';
+      case 'pending':
+        return 'bg-warning/5 border-warning/30';
+      case 'paused':
+        return 'bg-muted/50 opacity-60';
+      default:
+        return 'bg-card';
     }
   };
 
@@ -173,52 +217,70 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Monthly Recurring */}
-          {monthlyRevenues.length > 0 && (
+          {/* Monthly Recurring - Active */}
+          {activeMonthly.length > 0 && (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <RefreshCw className="h-4 w-4" />
-                Monthly Recurring
+              <div className="flex items-center gap-2 text-sm font-medium text-success">
+                <CheckCircle2 className="h-4 w-4" />
+                Active Monthly
               </div>
               <div className="space-y-2">
-                {monthlyRevenues.map((revenue) => (
-                  <div
+                {activeMonthly.map((revenue) => (
+                  <RevenueItem
                     key={revenue.id}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                      revenue.is_active ? 'bg-card' : 'bg-muted/50 opacity-60'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={revenue.is_active}
-                        onCheckedChange={() => handleToggleActive(revenue)}
-                      />
-                      <div>
-                        <span className="font-medium">${Number(revenue.amount).toFixed(0)}/mo</span>
-                        {revenue.description && (
-                          <span className="text-muted-foreground ml-2">— {revenue.description}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => openEditDialog(revenue)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive"
-                        onClick={() => setDeleteConfirm(revenue)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                    revenue={revenue}
+                    getStatusStyles={getStatusStyles}
+                    getStatusIcon={getStatusIcon}
+                    onStatusChange={handleStatusChange}
+                    onEdit={openEditDialog}
+                    onDelete={setDeleteConfirm}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Monthly Recurring - Pending */}
+          {pendingMonthly.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-warning">
+                <Clock className="h-4 w-4" />
+                Pending Monthly
+              </div>
+              <div className="space-y-2">
+                {pendingMonthly.map((revenue) => (
+                  <RevenueItem
+                    key={revenue.id}
+                    revenue={revenue}
+                    getStatusStyles={getStatusStyles}
+                    getStatusIcon={getStatusIcon}
+                    onStatusChange={handleStatusChange}
+                    onEdit={openEditDialog}
+                    onDelete={setDeleteConfirm}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Monthly Recurring - Paused */}
+          {pausedMonthly.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Pause className="h-4 w-4" />
+                Paused Monthly
+              </div>
+              <div className="space-y-2">
+                {pausedMonthly.map((revenue) => (
+                  <RevenueItem
+                    key={revenue.id}
+                    revenue={revenue}
+                    getStatusStyles={getStatusStyles}
+                    getStatusIcon={getStatusIcon}
+                    onStatusChange={handleStatusChange}
+                    onEdit={openEditDialog}
+                    onDelete={setDeleteConfirm}
+                  />
                 ))}
               </div>
             </div>
@@ -268,18 +330,29 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
           )}
 
           {/* Totals */}
-          <div className="pt-3 border-t flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Totals</span>
-            <div className="flex gap-4">
-              <Badge variant="secondary" className="font-mono">
-                ${totalMonthly.toFixed(0)}/mo
+          <div className="pt-3 border-t space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Active Monthly</span>
+              <Badge variant="secondary" className="font-mono bg-success/10 text-success border-success/20">
+                ${totalActiveMonthly.toFixed(0)}/mo
               </Badge>
-              {totalOneTime > 0 && (
-                <Badge variant="outline" className="font-mono">
-                  ${totalOneTime.toFixed(0)} one-time
-                </Badge>
-              )}
             </div>
+            {totalPendingMonthly > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Pending Monthly</span>
+                <Badge variant="outline" className="font-mono text-warning border-warning/30">
+                  +${totalPendingMonthly.toFixed(0)}/mo
+                </Badge>
+              </div>
+            )}
+            {totalOneTime > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">One-Time Total</span>
+                <Badge variant="outline" className="font-mono">
+                  ${totalOneTime.toFixed(0)}
+                </Badge>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -312,6 +385,29 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
+            {addType === 'monthly' && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: RevenueStatus) => setFormData({ ...formData, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <span className="flex items-center gap-2">
+                          <option.icon className={`h-4 w-4 ${option.color}`} />
+                          {option.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>
@@ -348,6 +444,29 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
+            {editingRevenue?.type === 'monthly' && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: RevenueStatus) => setFormData({ ...formData, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <span className="flex items-center gap-2">
+                          <option.icon className={`h-4 w-4 ${option.color}`} />
+                          {option.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingRevenue(null)}>
@@ -377,6 +496,65 @@ export function RevenueManager({ projectId }: RevenueManagerProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+// Extracted RevenueItem component for reuse
+interface RevenueItemProps {
+  revenue: ProjectRevenue;
+  getStatusStyles: (status: RevenueStatus) => string;
+  getStatusIcon: (status: RevenueStatus) => React.ReactNode;
+  onStatusChange: (revenue: ProjectRevenue, status: RevenueStatus) => void;
+  onEdit: (revenue: ProjectRevenue) => void;
+  onDelete: (revenue: ProjectRevenue) => void;
+}
+
+function RevenueItem({ revenue, getStatusStyles, getStatusIcon, onStatusChange, onEdit, onDelete }: RevenueItemProps) {
+  return (
+    <div className={`flex items-center justify-between p-3 rounded-lg border ${getStatusStyles(revenue.status)}`}>
+      <div className="flex items-center gap-3">
+        <Select
+          value={revenue.status}
+          onValueChange={(value: RevenueStatus) => onStatusChange(revenue, value)}
+        >
+          <SelectTrigger className="w-[120px] h-8">
+            <span className="flex items-center gap-2">
+              {getStatusIcon(revenue.status)}
+              <span className="capitalize">{revenue.status}</span>
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                <span className="flex items-center gap-2">
+                  <option.icon className={`h-4 w-4 ${option.color}`} />
+                  {option.label}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div>
+          <span className="font-medium">${Number(revenue.amount).toFixed(0)}/mo</span>
+          {revenue.description && (
+            <span className="text-muted-foreground ml-2">— {revenue.description}</span>
+          )}
+        </div>
+      </div>
+      <div className="flex gap-1">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(revenue)}>
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive"
+          onClick={() => onDelete(revenue)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
