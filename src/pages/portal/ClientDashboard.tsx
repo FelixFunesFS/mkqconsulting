@@ -2,6 +2,7 @@ import { ClientSidebar } from '@/components/layout/ClientSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useProjects } from '@/hooks/useProjects';
 import { statusLabels, statusColors } from '@/types/project';
 import { useNavigate } from 'react-router-dom';
@@ -9,13 +10,17 @@ import { Loader2, FolderKanban } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function ClientDashboard() {
-  const { data: projects, isLoading } = useProjects();
+  const { data: projects, isLoading, refetch } = useProjects();
   const navigate = useNavigate();
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row bg-background">
       <ClientSidebar />
-      <main className="flex-1 overflow-auto p-4 md:p-8">
+      <PullToRefresh onRefresh={handleRefresh} className="flex-1 overflow-auto p-4 md:p-8">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Welcome Back</h1>
           <p className="text-muted-foreground mt-1">Here's an overview of your projects</p>
@@ -59,7 +64,7 @@ export default function ClientDashboard() {
             ))}
           </div>
         )}
-      </main>
+      </PullToRefresh>
     </div>
   );
 }

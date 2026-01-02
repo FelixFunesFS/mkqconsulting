@@ -4,8 +4,10 @@ import { ClientTaskItem } from './ClientTaskItem';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Loader2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Loader2, ChevronDown, ChevronUp, Sparkles, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ClientTaskChecklistProps {
   tasks: ClientTask[];
@@ -31,6 +33,7 @@ export function ClientTaskChecklist({
   onVisibilityChange,
 }: ClientTaskChecklistProps) {
   const [showCompleted, setShowCompleted] = useState(false);
+  const isMobile = useIsMobile();
 
   // Separate completed and pending tasks
   const { pendingTasks, completedTasks, groupedPending, groupedCompleted } = useMemo(() => {
@@ -106,6 +109,16 @@ export function ClientTaskChecklist({
     );
   }
 
+  // Find first category with pending tasks to expand by default
+  const defaultOpenCategory = useMemo(() => {
+    for (const category of CATEGORY_ORDER) {
+      if (groupedPending[category].length > 0) {
+        return category;
+      }
+    }
+    return undefined;
+  }, [groupedPending]);
+
   const renderTaskGroup = (
     groupedTasks: Record<ClientTaskCategory, ClientTask[]>,
     showCategoryHeaders: boolean = true
@@ -140,6 +153,65 @@ export function ClientTaskChecklist({
         );
       })}
     </div>
+  );
+
+  // Mobile accordion layout for collapsible categories
+  const renderMobileTaskGroup = (groupedTasks: Record<ClientTaskCategory, ClientTask[]>) => (
+    <Accordion type="single" collapsible defaultValue={defaultOpenCategory} className="space-y-2">
+      {CATEGORY_ORDER.map((category) => {
+        const categoryTasks = groupedTasks[category];
+        if (categoryTasks.length === 0) return null;
+
+        const completed = categoryTasks.filter(t => t.status === 'completed').length;
+        const isAllComplete = completed === categoryTasks.length;
+
+        return (
+          <AccordionItem
+            key={category}
+            value={category}
+            className="border rounded-lg px-3 bg-card"
+          >
+            <AccordionTrigger className="hover:no-underline py-3">
+              <div className="flex items-center gap-2 flex-1">
+                {isAllComplete && (
+                  <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                )}
+                <span className={cn(
+                  "font-medium text-sm",
+                  isAllComplete && "text-muted-foreground"
+                )}>
+                  {CATEGORY_LABELS[category]}
+                </span>
+                <span className={cn(
+                  "ml-auto mr-2 text-xs px-2 py-0.5 rounded-full",
+                  isAllComplete 
+                    ? "bg-emerald-500/10 text-emerald-600" 
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {completed}/{categoryTasks.length}
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2 pb-2">
+                {categoryTasks.map((task) => (
+                  <ClientTaskItem
+                    key={task.id}
+                    task={task}
+                    isAdmin={isAdmin}
+                    onStatusChange={onStatusChange}
+                    onNotesChange={onNotesChange}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onVisibilityChange={onVisibilityChange}
+                  />
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
+    </Accordion>
   );
 
   // Count visible tasks for admin summary
@@ -190,7 +262,7 @@ export function ClientTaskChecklist({
                   </span>
                   Items needing your attention
                 </h3>
-                {renderTaskGroup(groupedPending)}
+                {isMobile ? renderMobileTaskGroup(groupedPending) : renderTaskGroup(groupedPending)}
               </div>
             )}
 
