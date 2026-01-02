@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 interface ClientTaskItemProps {
   task: ClientTask;
   isAdmin?: boolean;
+  compact?: boolean;
   onStatusChange: (taskId: string, status: 'pending' | 'completed' | 'not_applicable') => void;
   onNotesChange?: (taskId: string, notes: string) => void;
   onEdit?: (task: ClientTask) => void;
@@ -19,6 +20,7 @@ interface ClientTaskItemProps {
 export function ClientTaskItem({
   task,
   isAdmin = false,
+  compact = false,
   onStatusChange,
   onNotesChange,
   onEdit,
@@ -55,10 +57,15 @@ export function ClientTaskItem({
   return (
     <div
       className={cn(
-        'border rounded-lg p-4 transition-all',
-        isCompleted && 'bg-emerald-500/5 border-emerald-500/20',
-        isNA && 'bg-muted/30 border-muted opacity-60',
-        !isCompleted && !isNA && 'hover:border-primary/30',
+        'transition-all',
+        compact 
+          ? 'py-3 border-b last:border-b-0 border-border/50' 
+          : 'border rounded-lg p-4',
+        isCompleted && !compact && 'bg-emerald-500/5 border-emerald-500/20',
+        isCompleted && compact && 'bg-emerald-500/5',
+        isNA && 'bg-muted/30 opacity-60',
+        isNA && !compact && 'border-muted',
+        !isCompleted && !isNA && !compact && 'hover:border-primary/30',
         isAdmin && isHidden && 'opacity-50 border-dashed'
       )}
     >
@@ -99,7 +106,7 @@ export function ClientTaskItem({
             )}
           </div>
           
-          {task.description && (
+          {task.description && !compact && (
             <p className={cn(
               "text-sm mt-1",
               isCompleted ? "text-emerald-600/70 dark:text-emerald-400/70" : "text-muted-foreground"
@@ -108,7 +115,7 @@ export function ClientTaskItem({
             </p>
           )}
           
-          {task.whyNeeded && !isCompleted && (
+          {task.whyNeeded && !isCompleted && !compact && (
             <p className="text-xs text-muted-foreground/80 mt-2 italic">
               💡 {task.whyNeeded}
             </p>
@@ -162,7 +169,20 @@ export function ClientTaskItem({
       </div>
 
       {expanded && (
-        <div className="mt-4 pl-8 space-y-3">
+        <div className={cn("mt-4 space-y-3", compact ? "pl-6" : "pl-8")}>
+          {compact && task.description && (
+            <p className={cn(
+              "text-sm",
+              isCompleted ? "text-emerald-600/70 dark:text-emerald-400/70" : "text-muted-foreground"
+            )}>
+              {task.description}
+            </p>
+          )}
+          {compact && task.whyNeeded && !isCompleted && (
+            <p className="text-xs text-muted-foreground/80 italic">
+              💡 {task.whyNeeded}
+            </p>
+          )}
           <div>
             <label className="text-sm font-medium">
               {isCompleted ? "Your Response" : "Add a note or response"}
