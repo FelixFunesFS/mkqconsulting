@@ -10,6 +10,8 @@ import { useClients, useCreateClient, useDeleteClient, Client } from '@/hooks/us
 import { useProjects } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
 import { ClientProjectsDialog } from '@/components/projects/ClientProjectsDialog';
+import { ClientLogoUploader } from '@/components/clients/ClientLogoUploader';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Plus, 
   Mail, 
@@ -20,7 +22,8 @@ import {
   User,
   FolderKanban,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  ImagePlus
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -53,6 +56,7 @@ export default function AdminClients() {
 
   const [manageProjectsClient, setManageProjectsClient] = useState<Client | null>(null);
   const [deleteConfirmClient, setDeleteConfirmClient] = useState<Client | null>(null);
+  const [uploadLogoClient, setUploadLogoClient] = useState<Client | null>(null);
 
   const { data: clients, isLoading: clientsLoading } = useClients();
   const { data: projects } = useProjects();
@@ -163,13 +167,14 @@ export default function AdminClients() {
                 return (
                   <Card key={client.id} className="hover:shadow-md transition-shadow">
                     <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
+                        <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-sm font-semibold text-primary">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={client.logoUrl || undefined} alt={client.name} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
                               {client.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
+                            </AvatarFallback>
+                          </Avatar>
                           <div>
                             <CardTitle className="text-base">{client.name}</CardTitle>
                             {client.companyName && (
@@ -187,6 +192,12 @@ export default function AdminClients() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem 
+                              onClick={() => setUploadLogoClient(client)}
+                            >
+                              <ImagePlus className="h-4 w-4 mr-2" />
+                              Upload Logo
+                            </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => setManageProjectsClient(client)}
                             >
@@ -318,6 +329,28 @@ export default function AdminClients() {
         open={!!manageProjectsClient}
         onOpenChange={(open) => !open && setManageProjectsClient(null)}
       />
+
+      {/* Upload Logo Dialog */}
+      <Dialog open={!!uploadLogoClient} onOpenChange={(open) => !open && setUploadLogoClient(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Client Logo</DialogTitle>
+            <DialogDescription>
+              Upload a brand logo for {uploadLogoClient?.name}. This will appear in their client portal.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {uploadLogoClient && (
+              <ClientLogoUploader
+                clientId={uploadLogoClient.id}
+                currentLogoUrl={uploadLogoClient.logoUrl}
+                clientName={uploadLogoClient.name}
+                size="lg"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirmClient} onOpenChange={(open) => !open && setDeleteConfirmClient(null)}>
