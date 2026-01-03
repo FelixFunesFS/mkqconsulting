@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { ForgotPasswordForm } from './ForgotPasswordForm';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -23,6 +24,7 @@ interface LoginFormProps {
 export function LoginForm({ onSuccess, onError }: LoginFormProps) {
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema)
@@ -45,6 +47,10 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
     }
   };
 
+  if (showForgotPassword) {
+    return <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />;
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
@@ -62,7 +68,17 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Password</Label>
+          <Button
+            type="button"
+            variant="link"
+            className="px-0 h-auto font-normal text-sm"
+            onClick={() => setShowForgotPassword(true)}
+          >
+            Forgot password?
+          </Button>
+        </div>
         <Input
           id="password"
           type="password"

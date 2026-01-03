@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { ClientTaskChecklist } from './ClientTaskChecklist';
 import { ApplyTemplateDialog } from './ApplyTemplateDialog';
 import { SendOnboardingEmailDialog } from './SendOnboardingEmailDialog';
+import { ClientTaskEditDialog } from './ClientTaskEditDialog';
+import { ClientTaskCreateDialog } from './ClientTaskCreateDialog';
 import { ClientTask } from '@/types/clientTask';
 import { useClientTasks, useUpdateClientTask, useDeleteClientTask } from '@/hooks/useClientTasks';
 import { toast } from '@/hooks/use-toast';
-import { FileStack, Loader2 } from 'lucide-react';
+import { FileStack, Loader2, Plus } from 'lucide-react';
 
 interface AdminClientTaskListProps {
   projectId: string;
@@ -17,6 +19,8 @@ interface AdminClientTaskListProps {
 
 export function AdminClientTaskList({ projectId, projectName, clientEmail, clientName }: AdminClientTaskListProps) {
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState<ClientTask | null>(null);
 
   const { data: tasks = [], isLoading } = useClientTasks(projectId);
   const updateTask = useUpdateClientTask();
@@ -66,8 +70,7 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
   };
 
   const handleEdit = (task: ClientTask) => {
-    // TODO: Open edit dialog
-    console.log('Edit task:', task);
+    setEditingTask(task);
   };
 
   const handleDelete = async (taskId: string) => {
@@ -112,6 +115,13 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
     <div className="flex flex-col h-full">
       {/* Actions - Fixed at top */}
       <div className="flex items-center gap-2 flex-wrap shrink-0 mb-4">
+        <Button
+          size="sm"
+          onClick={() => setShowCreateDialog(true)}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Task
+        </Button>
         <Button
           variant="outline"
           size="sm"
@@ -166,6 +176,19 @@ export function AdminClientTaskList({ projectId, projectName, clientEmail, clien
         projectId={projectId}
         open={showTemplateDialog}
         onOpenChange={setShowTemplateDialog}
+      />
+
+      <ClientTaskCreateDialog
+        projectId={projectId}
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+      />
+
+      <ClientTaskEditDialog
+        task={editingTask}
+        projectId={projectId}
+        open={!!editingTask}
+        onOpenChange={(open) => !open && setEditingTask(null)}
       />
     </div>
   );

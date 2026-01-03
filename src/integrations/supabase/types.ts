@@ -65,6 +65,39 @@ export type Database = {
           },
         ]
       }
+      admin_settings: {
+        Row: {
+          auto_send_invitations: boolean
+          client_activity_alerts: boolean
+          created_at: string
+          email_notifications: boolean
+          id: string
+          show_task_details: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_send_invitations?: boolean
+          client_activity_alerts?: boolean
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          show_task_details?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_send_invitations?: boolean
+          client_activity_alerts?: boolean
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          show_task_details?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       client_task_templates: {
         Row: {
           category: Database["public"]["Enums"]["client_task_category"]

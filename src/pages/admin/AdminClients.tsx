@@ -11,6 +11,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
 import { ClientProjectsDialog } from '@/components/projects/ClientProjectsDialog';
 import { ClientLogoUploader } from '@/components/clients/ClientLogoUploader';
+import { ClientEditDialog } from '@/components/clients/ClientEditDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Plus, 
@@ -23,7 +24,8 @@ import {
   FolderKanban,
   Loader2,
   AlertTriangle,
-  ImagePlus
+  ImagePlus,
+  Pencil
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -57,6 +59,7 @@ export default function AdminClients() {
   const [manageProjectsClient, setManageProjectsClient] = useState<Client | null>(null);
   const [deleteConfirmClient, setDeleteConfirmClient] = useState<Client | null>(null);
   const [uploadLogoClient, setUploadLogoClient] = useState<Client | null>(null);
+  const [editClient, setEditClient] = useState<Client | null>(null);
 
   const { data: clients, isLoading: clientsLoading } = useClients();
   const { data: projects } = useProjects();
@@ -192,6 +195,12 @@ export default function AdminClients() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem 
+                              onClick={() => setEditClient(client)}
+                            >
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit Client
+                            </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => setUploadLogoClient(client)}
                             >
@@ -376,6 +385,13 @@ export default function AdminClients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Client Dialog */}
+      <ClientEditDialog
+        client={editClient}
+        open={!!editClient}
+        onOpenChange={(open) => !open && setEditClient(null)}
+      />
     </div>
   );
 }
