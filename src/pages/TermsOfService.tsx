@@ -5,25 +5,25 @@ export default function TermsOfService() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top Banner */}
-      <div className="h-2 bg-[#CCFF00]" />
+      <div className="h-2 shrink-0 bg-[#CCFF00]" />
       
-      <div className="flex-1 bg-background">
-        <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="flex-1 bg-background overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
           {/* Back Link */}
           <Link 
             to="/auth" 
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 sm:mb-8"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Login
           </Link>
 
-          <h1 className="text-3xl font-bold mb-2">Terms of Service</h1>
-          <p className="text-sm text-muted-foreground mb-8">Last Updated: January 12, 2026</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Terms of Service</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8">Last Updated: January 12, 2026</p>
 
-          <div className="prose prose-sm max-w-none space-y-6 text-foreground">
+          <div className="prose prose-sm max-w-none space-y-5 sm:space-y-6 text-foreground">
             <section>
-              <h2 className="text-xl font-semibold mb-3">1. Acceptance of Terms</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">1. Acceptance of Terms</h2>
               <p className="text-muted-foreground">
                 By accessing or using the services provided by MKQ Consulting LLC ("Company," "we," "our," or "us") 
                 through our website at www.mkqconsulting.com and client portal, you agree to be bound by these Terms 
@@ -32,7 +32,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">2. Description of Services</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">2. Description of Services</h2>
               <p className="text-muted-foreground">
                 MKQ Consulting LLC provides consulting services and a client portal platform that enables clients to:
               </p>
@@ -46,7 +46,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">3. User Accounts</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">3. User Accounts</h2>
               <p className="text-muted-foreground mb-3">
                 To access our client portal, you must create an account. You agree to:
               </p>
@@ -62,7 +62,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">4. Acceptable Use Policy</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">4. Acceptable Use Policy</h2>
               <p className="text-muted-foreground mb-3">You agree not to:</p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-1">
                 <li>Use our services for any unlawful purpose</li>
@@ -76,7 +76,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">5. Intellectual Property Rights</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">5. Intellectual Property Rights</h2>
               <p className="text-muted-foreground">
                 All content, features, and functionality of our services, including but not limited to text, graphics, 
                 logos, and software, are owned by MKQ Consulting LLC and are protected by intellectual property laws. 
@@ -89,7 +89,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">6. Confidentiality</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">6. Confidentiality</h2>
               <p className="text-muted-foreground">
                 We understand the sensitive nature of project information shared through our platform. We commit to 
                 maintaining the confidentiality of your data and will not disclose confidential information to third 
@@ -99,7 +99,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">7. Payment Terms</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">7. Payment Terms</h2>
               <p className="text-muted-foreground">
                 Payment terms for consulting services are outlined in your individual service agreement. Use of the 
                 client portal is provided as part of our consulting services. Late payments may result in suspension 
@@ -108,7 +108,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">8. Limitation of Liability</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">8. Limitation of Liability</h2>
               <p className="text-muted-foreground">
                 TO THE MAXIMUM EXTENT PERMITTED BY LAW, MKQ CONSULTING LLC SHALL NOT BE LIABLE FOR ANY INDIRECT, 
                 INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF OUR SERVICES. 
@@ -118,7 +118,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">9. Disclaimer of Warranties</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">9. Disclaimer of Warranties</h2>
               <p className="text-muted-foreground">
                 OUR SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS 
                 OR IMPLIED. WE DO NOT WARRANT THAT OUR SERVICES WILL BE UNINTERRUPTED, ERROR-FREE, OR COMPLETELY SECURE. 
@@ -127,7 +127,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">10. Indemnification</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">10. Indemnification</h2>
               <p className="text-muted-foreground">
                 You agree to indemnify, defend, and hold harmless MKQ Consulting LLC and its officers, directors, 
                 employees, and agents from any claims, damages, losses, or expenses arising from your use of our 
@@ -136,7 +136,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">11. Termination</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">11. Termination</h2>
               <p className="text-muted-foreground">
                 We may suspend or terminate your access to our services at any time, with or without cause, upon 
                 notice. Upon termination, your right to use our services will immediately cease. Provisions of these 
@@ -146,7 +146,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">12. Governing Law</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">12. Governing Law</h2>
               <p className="text-muted-foreground">
                 These Terms shall be governed by and construed in accordance with the laws of the State of [Your State], 
                 without regard to its conflict of law provisions. Any disputes arising from these Terms shall be 
@@ -155,7 +155,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">13. Dispute Resolution</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">13. Dispute Resolution</h2>
               <p className="text-muted-foreground">
                 Before initiating any legal proceedings, you agree to first attempt to resolve any dispute informally 
                 by contacting us. If the dispute is not resolved within thirty (30) days, either party may pursue 
@@ -164,7 +164,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">14. Changes to Terms</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">14. Changes to Terms</h2>
               <p className="text-muted-foreground">
                 We reserve the right to modify these Terms at any time. We will provide notice of significant changes 
                 by posting the updated Terms on our website and updating the "Last Updated" date. Your continued use 
@@ -173,7 +173,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">15. Severability</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">15. Severability</h2>
               <p className="text-muted-foreground">
                 If any provision of these Terms is found to be unenforceable or invalid, that provision shall be 
                 limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain 
@@ -182,7 +182,7 @@ export default function TermsOfService() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mb-3">16. Contact Us</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">16. Contact Us</h2>
               <p className="text-muted-foreground">
                 If you have any questions about these Terms of Service, please contact us at:
               </p>
@@ -197,7 +197,7 @@ export default function TermsOfService() {
       </div>
 
       {/* Bottom Banner */}
-      <div className="h-2 bg-[#1a0a2e]" />
+      <div className="h-2 shrink-0 bg-[#1a0a2e]" />
     </div>
   );
 }
