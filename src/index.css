@@ -162,12 +162,8 @@
   }
 }
 
-/* Safe area support for notched phones and PWA */
-html {
-  /* Ensure viewport covers the entire screen */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-
+/* Safe area CSS variables for notched phones and PWA */
+/* Note: Do NOT add global padding to html - let components handle safe areas individually */
 :root {
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
