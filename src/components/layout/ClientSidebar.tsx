@@ -142,7 +142,7 @@ export function ClientSidebar() {
   if (isMobile) {
     return (
       <>
-        <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-card border-b border-border flex items-center justify-between px-4">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border flex items-center justify-between px-4 pt-[env(safe-area-inset-top)] h-[calc(3.5rem+env(safe-area-inset-top))]">
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -178,7 +178,7 @@ export function ClientSidebar() {
           <div className="w-9" /> {/* Spacer for centering */}
         </header>
         {/* Spacer for fixed header */}
-        <div className="h-14 shrink-0" />
+        <div className="shrink-0 h-[calc(3.5rem+env(safe-area-inset-top))]" />
       </>
     );
   }

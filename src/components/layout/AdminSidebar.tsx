@@ -139,7 +139,7 @@ export function AdminSidebar({ onNewProject }: AdminSidebarProps) {
   if (isMobile) {
     return (
       <>
-        <header className="fixed top-0 left-0 right-0 h-14 bg-card border-b border-border flex items-center px-4 z-50">
+        <header className="fixed top-0 left-0 right-0 bg-card border-b border-border flex items-center px-4 z-50 pt-[env(safe-area-inset-top)] h-[calc(3.5rem+env(safe-area-inset-top))]">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="mr-3">
@@ -164,7 +164,7 @@ export function AdminSidebar({ onNewProject }: AdminSidebarProps) {
           />
         </header>
         {/* Spacer for fixed header */}
-        <div className="h-14 shrink-0" />
+        <div className="shrink-0 h-[calc(3.5rem+env(safe-area-inset-top))]" />
       </>
     );
   }
