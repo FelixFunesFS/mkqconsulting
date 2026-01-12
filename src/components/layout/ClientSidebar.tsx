@@ -145,7 +145,7 @@ export function ClientSidebar() {
                       {clientInitial}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-semibold text-foreground">Client Portal</span>
+                  <span className="font-semibold text-foreground truncate max-w-[140px]">{clientName}</span>
                 </div>
               </div>
               <NavigationContent onNavigate={handleNavigation} />
@@ -159,7 +159,7 @@ export function ClientSidebar() {
                 {clientInitial}
               </AvatarFallback>
             </Avatar>
-            <span className="font-semibold text-foreground">Client Portal</span>
+            <span className="font-semibold text-foreground truncate max-w-[140px]">{clientName}</span>
           </div>
           
           <div className="w-9" /> {/* Spacer for centering */}
@@ -188,7 +188,7 @@ export function ClientSidebar() {
                 {clientInitial}
               </AvatarFallback>
             </Avatar>
-            <span className="font-semibold text-foreground">Client Portal</span>
+            <span className="font-semibold text-foreground truncate max-w-[140px]">{clientName}</span>
           </div>
         )}
         <Button
