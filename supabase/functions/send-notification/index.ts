@@ -111,11 +111,59 @@ serve(async (req) => {
   }
 
   try {
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Validate authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.log("[send-notification] Missing or invalid Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create client with user's auth token to verify the user
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    
+    if (userError || !user) {
+      console.log("[send-notification] Invalid user token:", userError?.message);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = user.id;
+    console.log("[send-notification] Authenticated user:", userId);
+
+    // Use service role client for admin operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Check if user has admin role
+    const { data: roles, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin");
+
+    if (rolesError || !roles || roles.length === 0) {
+      console.log("[send-notification] User is not admin:", userId);
+      return new Response(
+        JSON.stringify({ error: "Forbidden - admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[send-notification] Admin access verified for user:", userId);
+
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const { type, projectId, projectName, clientEmail, details }: NotificationRequest = await req.json();
 
     const portalUrl = `https://www.mkqconsulting.com/portal`;
