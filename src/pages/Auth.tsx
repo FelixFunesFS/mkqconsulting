@@ -96,7 +96,7 @@ export default function Auth() {
           
           {/* Tagline */}
           <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3">
-            Where Vision Meets Execution
+            Where Vision Meets Execution and Marketing Solutions
           </h1>
           <p className="text-white/60 text-lg mb-12">
             Your trusted partner in web development
@@ -151,7 +151,7 @@ export default function Auth() {
                     className="mx-auto mb-4 h-20 sm:h-24 w-auto object-contain rounded-xl shadow-lg shadow-black/20"
                   />
                   <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                    Where Vision Meets Execution
+                    Where Vision Meets Execution and Marketing Solutions
                   </p>
                 </>
               )}
