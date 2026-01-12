@@ -6,6 +6,92 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation and sanitization utilities
+const MAX_PROJECT_NAME_LENGTH = 200;
+const MAX_FIELD_LENGTH = 2000;
+const MAX_QUESTIONNAIRE_FIELDS = 100;
+
+/**
+ * Sanitizes a string by removing control characters and limiting length
+ */
+function sanitize(str: unknown, maxLength: number = MAX_FIELD_LENGTH): string {
+  if (str === null || str === undefined) return '';
+  if (typeof str !== 'string') {
+    str = String(str);
+  }
+  // Remove control characters (except newlines and tabs), trim whitespace
+  return (str as string)
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .trim()
+    .slice(0, maxLength);
+}
+
+/**
+ * Validates and sanitizes the questionnaire object
+ */
+function sanitizeQuestionnaire(q: unknown): Record<string, unknown> {
+  if (!q || typeof q !== 'object' || Array.isArray(q)) {
+    return {};
+  }
+  
+  const sanitized: Record<string, unknown> = {};
+  const entries = Object.entries(q as Record<string, unknown>);
+  
+  // Limit number of fields to prevent abuse
+  if (entries.length > MAX_QUESTIONNAIRE_FIELDS) {
+    throw new Error(`Questionnaire exceeds maximum of ${MAX_QUESTIONNAIRE_FIELDS} fields`);
+  }
+  
+  for (const [key, value] of entries) {
+    // Sanitize key name
+    const sanitizedKey = sanitize(key, 100);
+    if (!sanitizedKey) continue;
+    
+    // Handle arrays (like primary_goals, required_features)
+    if (Array.isArray(value)) {
+      sanitized[sanitizedKey] = value
+        .slice(0, 50) // Limit array length
+        .map(item => sanitize(item, 500));
+    } else if (typeof value === 'boolean') {
+      sanitized[sanitizedKey] = value;
+    } else if (typeof value === 'string') {
+      sanitized[sanitizedKey] = sanitize(value, MAX_FIELD_LENGTH);
+    } else if (value === null || value === undefined) {
+      sanitized[sanitizedKey] = null;
+    }
+    // Ignore other types (objects, numbers that aren't booleans)
+  }
+  
+  return sanitized;
+}
+
+/**
+ * Validates the project phase
+ */
+function validatePhase(phase: unknown): string {
+  const validPhases = ['discovery', 'design', 'development', 'review', 'published'];
+  const phaseStr = sanitize(phase, 20).toLowerCase();
+  return validPhases.includes(phaseStr) ? phaseStr : 'discovery';
+}
+
+/**
+ * Validates the mode parameter
+ */
+function validateMode(mode: unknown): string {
+  const validModes = ['regenerate', 'add_new'];
+  const modeStr = sanitize(mode, 20).toLowerCase();
+  return validModes.includes(modeStr) ? modeStr : 'regenerate';
+}
+
+/**
+ * Validates UUID format
+ */
+function isValidUUID(id: unknown): boolean {
+  if (typeof id !== 'string') return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id);
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -73,9 +159,55 @@ serve(async (req) => {
 
     console.log('Admin role verified for user:', userId);
 
-    const { projectId, questionnaire, projectName, currentPhase, mode = 'regenerate' } = await req.json();
+    // Parse and validate request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { projectId, questionnaire, projectName, currentPhase, mode } = requestBody;
     
-    console.log('Generating tasks for project:', projectId, projectName, 'mode:', mode);
+    // Validate required fields
+    if (!projectId) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required field: projectId' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!isValidUUID(projectId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid projectId format' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!projectName) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required field: projectName' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sanitize all inputs
+    const sanitizedProjectName = sanitize(projectName, MAX_PROJECT_NAME_LENGTH);
+    if (!sanitizedProjectName) {
+      return new Response(
+        JSON.stringify({ error: 'Project name cannot be empty' }), 
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const sanitizedQuestionnaire = sanitizeQuestionnaire(questionnaire);
+    const validatedPhase = validatePhase(currentPhase);
+    const validatedMode = validateMode(mode);
+    
+    console.log('Generating tasks for project:', projectId, sanitizedProjectName, 'mode:', validatedMode);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -83,8 +215,8 @@ serve(async (req) => {
     }
 
     // Format questionnaire data for the AI prompt
-    const formatQuestionnaire = (q: any) => {
-      if (!q) return 'No questionnaire data available';
+    const formatQuestionnaire = (q: Record<string, unknown>) => {
+      if (!q || Object.keys(q).length === 0) return 'No questionnaire data available';
       
       const sections = [];
       
@@ -226,11 +358,11 @@ Guidelines:
 
     const userPrompt = `Analyze this client questionnaire and generate a comprehensive task list for their web development project.
 
-**Project:** ${projectName}
-**Current Phase:** ${currentPhase}
+**Project:** ${sanitizedProjectName}
+**Current Phase:** ${validatedPhase}
 
 **Questionnaire Data:**
-${formatQuestionnaire(questionnaire)}
+${formatQuestionnaire(sanitizedQuestionnaire)}
 
 Generate a JSON array of tasks. Return ONLY the JSON array, no other text. Example format:
 [
@@ -302,8 +434,36 @@ Generate a JSON array of tasks. Return ONLY the JSON array, no other text. Examp
       throw new Error('Failed to parse task list from AI');
     }
 
+    // Validate and sanitize AI-generated tasks
+    if (!Array.isArray(tasks)) {
+      throw new Error('AI response is not a valid task array');
+    }
+
+    const validPhases = ['discovery', 'design', 'development', 'review', 'published'];
+    const validPriorities = ['low', 'medium', 'high', 'critical'];
+
+    const validatedTasks = tasks.slice(0, 50).map((task: Record<string, unknown>) => {
+      const title = sanitize(task.title, 60);
+      const description = sanitize(task.description, 500);
+      const phase = validPhases.includes(String(task.phase)) ? String(task.phase) : 'discovery';
+      const priority = validPriorities.includes(String(task.priority)) ? String(task.priority) : 'medium';
+      const estimatedHours = typeof task.estimated_hours === 'number' 
+        ? Math.min(Math.max(task.estimated_hours, 0), 1000) 
+        : null;
+      const questionnaireField = sanitize(task.questionnaire_field, 50);
+
+      return {
+        title: title || 'Untitled Task',
+        description,
+        phase,
+        priority,
+        estimated_hours: estimatedHours,
+        questionnaire_field: questionnaireField || null,
+      };
+    }).filter((task: { title: string }) => task.title && task.title !== 'Untitled Task');
+
     // Handle different modes for task management
-    if (mode === 'regenerate') {
+    if (validatedMode === 'regenerate') {
       // Delete only PENDING AI-generated tasks, preserve completed ones
       const { error: deleteError } = await supabase
         .from('tasks')
@@ -319,12 +479,12 @@ Generate a JSON array of tasks. Return ONLY the JSON array, no other text. Examp
     // For 'add_new' mode, we don't delete anything - just add new tasks
 
     // Insert new tasks
-    const tasksToInsert = tasks.map((task: any) => ({
+    const tasksToInsert = validatedTasks.map((task: Record<string, unknown>) => ({
       project_id: projectId,
       title: task.title,
       description: task.description,
       phase: task.phase,
-      priority: task.priority || 'medium',
+      priority: task.priority,
       status: 'pending',
       estimated_hours: task.estimated_hours,
       source: 'ai_generated',
