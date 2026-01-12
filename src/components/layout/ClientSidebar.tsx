@@ -53,7 +53,7 @@ export function ClientSidebar() {
   });
 
   const logoUrl = clientData?.logo_url;
-  const clientName = clientData?.company_name || clientData?.name || 'Client';
+  const clientName = clientData?.name || clientData?.company_name || 'Client';
   const clientInitial = clientName.charAt(0).toUpperCase();
 
   // Update collapsed state on resize for tablet
