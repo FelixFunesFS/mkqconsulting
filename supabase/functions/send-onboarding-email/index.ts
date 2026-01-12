@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.86.0";
 import {
   emailWrapper,
   emailHeader,
@@ -54,37 +54,53 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     // Validate authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.error('Missing or invalid Authorization header');
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("Missing or invalid Authorization header");
       return new Response(
-        JSON.stringify({ error: 'Unauthorized - missing authorization' }), 
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Unauthorized - missing authorization" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
+    const token = authHeader.slice("Bearer ".length).trim();
+    if (!token) {
+      console.error("Authorization header contained no token");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - missing token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Note: don't log the token itself.
+    console.log("Auth token received (length):", token.length);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
-    // Use service role client for all operations including user verification
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Extract and verify the JWT token
-    const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !userData?.user) {
-      console.error('JWT verification failed:', userError);
+
+    // 1) Verify JWT and extract user id from claims
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      console.error("JWT verification failed:", claimsError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized - invalid token' }), 
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Unauthorized - invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const userId = userData.user.id;
-    console.log('Authenticated user:', userId);
+    const userId = claimsData.claims.sub;
+    console.log("Authenticated user:", userId);
 
-    // Check if user has admin role
+    // 2) Use service role for DB reads/writes AFTER authorization checks
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     // Check if user has admin role
     const { data: roles, error: rolesError } = await supabase
