@@ -1,4 +1,4 @@
-import { Bell, BellOff, Loader2 } from 'lucide-react';
+import { Bell, BellOff, Loader2, Smartphone } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -18,6 +18,8 @@ export function PushNotificationToggle({
     permission, 
     isSubscribed, 
     isLoading, 
+    isIOS,
+    isStandalonePWA,
     subscribe, 
     unsubscribe 
   } = usePushNotifications();
@@ -40,6 +42,27 @@ export function PushNotificationToggle({
     }
   };
 
+  // iOS Safari (not installed as PWA)
+  if (isIOS && !isStandalonePWA) {
+    return (
+      <div className={`flex flex-col gap-2 ${className}`}>
+        <div className="flex items-center gap-3">
+          <Smartphone className="h-4 w-4 text-muted-foreground" />
+          {showLabel && (
+            <Label className="flex-1 text-muted-foreground">
+              Push Notifications
+            </Label>
+          )}
+          <Switch disabled checked={false} aria-label="Add to home screen required" />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          To enable notifications on iOS: tap the <strong>Share</strong> button, then <strong>"Add to Home Screen"</strong>.
+        </p>
+      </div>
+    );
+  }
+
+  // Not supported (other browsers or missing features)
   if (!isSupported) {
     return (
       <div className={`flex flex-col gap-2 ${className}`}>
@@ -53,7 +76,9 @@ export function PushNotificationToggle({
           <Switch disabled checked={false} aria-label="Push notifications not supported" />
         </div>
         <p className="text-xs text-muted-foreground">
-          Not available on this browser. For iOS, add this app to your home screen first.
+          {isIOS 
+            ? 'Requires iOS 16.4 or later. Please update your device.'
+            : 'Not available on this browser.'}
         </p>
       </div>
     );

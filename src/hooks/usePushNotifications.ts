@@ -4,7 +4,18 @@ import { useAuth } from './useAuth';
 
 // VAPID public key for push subscriptions
 // This is the PUBLIC key - safe to include in client code
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+// Hardcoded because Vite env vars need to be in .env at build time
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || 
+  'BLc-6nXHp_rjBKgDHn_9Bn2JXq7xYzPNKrM4CqYHqJr_mQGz4zKvVwWxKq5YJGqZXnD3aRZLfvF8X4kJH5ynQig';
+
+// Detect iOS
+const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+// Detect if running as standalone PWA
+const isStandalonePWA = typeof window !== 'undefined' && (
+  window.matchMedia('(display-mode: standalone)').matches ||
+  (window.navigator as any).standalone === true
+);
 
 interface UsePushNotificationsReturn {
   isSupported: boolean;
@@ -12,6 +23,8 @@ interface UsePushNotificationsReturn {
   isSubscribed: boolean;
   isLoading: boolean;
   error: string | null;
+  isIOS: boolean;
+  isStandalonePWA: boolean;
   requestPermission: () => Promise<boolean>;
   subscribe: () => Promise<boolean>;
   unsubscribe: () => Promise<boolean>;
@@ -44,16 +57,29 @@ export function usePushNotifications(): UsePushNotificationsReturn {
   // Check if push notifications are supported
   useEffect(() => {
     const checkSupport = async () => {
-      const supported = 
-        'Notification' in window && 
-        'serviceWorker' in navigator && 
-        'PushManager' in window &&
-        !!VAPID_PUBLIC_KEY;
+      const hasNotification = 'Notification' in window;
+      const hasServiceWorker = 'serviceWorker' in navigator;
+      const hasPushManager = 'PushManager' in window;
+      const hasVapidKey = !!VAPID_PUBLIC_KEY;
+
+      // Debug logging for iOS troubleshooting
+      console.log('[Push] Support check:', {
+        hasNotification,
+        hasServiceWorker,
+        hasPushManager,
+        hasVapidKey,
+        isIOS,
+        isStandalonePWA,
+        vapidKeyLength: VAPID_PUBLIC_KEY?.length
+      });
+
+      const supported = hasNotification && hasServiceWorker && hasPushManager && hasVapidKey;
 
       setIsSupported(supported);
       
       if (supported) {
         setPermission(Notification.permission);
+        console.log('[Push] Permission status:', Notification.permission);
         
         // Check if already subscribed
         if (isAuthenticated && Notification.permission === 'granted') {
@@ -61,8 +87,9 @@ export function usePushNotifications(): UsePushNotificationsReturn {
             const registration = await navigator.serviceWorker.ready;
             const subscription = await registration.pushManager.getSubscription();
             setIsSubscribed(!!subscription);
+            console.log('[Push] Existing subscription:', !!subscription);
           } catch (err) {
-            console.error('Error checking subscription:', err);
+            console.error('[Push] Error checking subscription:', err);
           }
         }
       }
@@ -180,6 +207,8 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     isSubscribed,
     isLoading,
     error,
+    isIOS,
+    isStandalonePWA,
     requestPermission,
     subscribe,
     unsubscribe,
