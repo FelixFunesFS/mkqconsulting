@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import mkgLogo from '@/assets/mkg-logo.png';
 
 export default function Auth() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
@@ -65,12 +66,26 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/20 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary/20 p-4 relative">
+      {/* Top Banner - Neon Yellow/Green */}
+      <div 
+        className="fixed top-0 left-0 right-0 h-2" 
+        style={{ backgroundColor: '#DFFF00' }} 
+      />
+      
+      {/* Bottom Banner - Neon Fuchsia */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 h-2" 
+        style={{ backgroundColor: '#FF00FF' }} 
+      />
+      
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <span className="text-2xl font-bold text-primary">W</span>
-          </div>
+          <img 
+            src={mkgLogo} 
+            alt="MKG Consulting" 
+            className="mx-auto mb-4 h-24 w-auto object-contain"
+          />
           <CardTitle className="text-2xl">Welcome</CardTitle>
           <CardDescription>
             Sign in to access your project dashboard
