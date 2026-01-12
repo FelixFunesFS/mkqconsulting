@@ -7,7 +7,7 @@ import { SignupForm } from '@/components/auth/SignupForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2, Shield } from 'lucide-react';
 import mkgLogo from '@/assets/mkg-logo.png';
 
 export default function Auth() {
@@ -86,10 +86,29 @@ export default function Auth() {
             alt="MKG Consulting" 
             className="mx-auto mb-4 h-24 w-auto object-contain"
           />
+          <p className="text-sm text-muted-foreground mb-2">
+            Your Strategic Partner in Project Success
+          </p>
           <CardTitle className="text-2xl">Welcome</CardTitle>
           <CardDescription>
             Sign in to access your project dashboard
           </CardDescription>
+          
+          {/* Value Bullets */}
+          <div className="flex flex-col gap-2 mt-4 text-sm text-muted-foreground text-left">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+              <span>Real-time project tracking & updates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+              <span>Secure document sharing & collaboration</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+              <span>Direct communication with your team</span>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'login' | 'signup')}>
@@ -104,8 +123,26 @@ export default function Auth() {
               <SignupForm onSuccess={handleSignupSuccess} onError={handleError} />
             </TabsContent>
           </Tabs>
+          
+          {/* Security Badge */}
+          <div className="flex items-center justify-center gap-2 mt-6 text-xs text-muted-foreground">
+            <Shield className="h-4 w-4 text-green-500" />
+            <span>256-bit SSL encrypted | Your data is secure</span>
+          </div>
         </CardContent>
       </Card>
+      
+      {/* Footer */}
+      <div className="mt-6 text-center text-xs text-muted-foreground space-y-2">
+        <p>
+          Need help? <a href="mailto:support@mkgconsulting.com" className="text-primary hover:underline">Contact Support</a>
+        </p>
+        <div className="flex items-center justify-center gap-4">
+          <a href="/privacy" className="hover:underline">Privacy Policy</a>
+          <span>|</span>
+          <a href="/terms" className="hover:underline">Terms of Service</a>
+        </div>
+      </div>
     </div>
   );
 }
