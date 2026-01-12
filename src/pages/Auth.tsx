@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoginForm } from '@/components/auth/LoginForm';
@@ -133,14 +133,14 @@ export default function Auth() {
       </Card>
       
       {/* Footer */}
-      <div className="mt-6 text-center text-xs text-muted-foreground space-y-2">
+      <div className="fixed bottom-6 left-0 right-0 text-center text-xs text-muted-foreground space-y-2">
         <p>
-          Need help? <a href="mailto:support@mkgconsulting.com" className="text-primary hover:underline">Contact Support</a>
+          Need help? <a href="mailto:envision@mkqconsulting.com" className="text-primary hover:underline">Contact Support</a>
         </p>
         <div className="flex items-center justify-center gap-4">
-          <a href="/privacy" className="hover:underline">Privacy Policy</a>
+          <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
           <span>|</span>
-          <a href="/terms" className="hover:underline">Terms of Service</a>
+          <Link to="/terms" className="hover:underline">Terms of Service</Link>
         </div>
       </div>
     </div>
