@@ -1,16 +1,16 @@
 project_id = "htyvgarziudtsfyxxtgw"
 
 [functions.generate-tasks]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-onboarding-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-notification]
-verify_jwt = false
+verify_jwt = true
 
 [functions.register-push-subscription]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-push-notification]
-verify_jwt = false
+verify_jwt = true
