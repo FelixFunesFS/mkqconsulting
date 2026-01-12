@@ -73,10 +73,10 @@ export default function Auth() {
         style={{ backgroundColor: '#DFFF00' }} 
       />
       
-      {/* Bottom Banner - Electric Blue */}
+      {/* Bottom Banner - Deep Purple */}
       <div 
         className="fixed bottom-0 left-0 right-0 h-2" 
-        style={{ backgroundColor: '#00D4FF' }} 
+        style={{ backgroundColor: '#1A0A2E' }} 
       />
       
       <Card className="w-full max-w-md">
