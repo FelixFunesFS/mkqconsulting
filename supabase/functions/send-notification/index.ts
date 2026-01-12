@@ -19,7 +19,7 @@ const corsHeaders = {
 };
 
 interface NotificationRequest {
-  type: "project_status_changed" | "comment_added" | "document_uploaded";
+  type: "project_status_changed" | "comment_added" | "document_uploaded" | "client_task_assigned";
   projectId: string;
   projectName: string;
   clientEmail?: string;
@@ -30,6 +30,8 @@ interface NotificationRequest {
     commentAuthor?: string;
     documentName?: string;
     uploaderName?: string;
+    taskTitle?: string;
+    taskCount?: number;
   };
 }
 
@@ -135,6 +137,15 @@ serve(async (req) => {
         pushTitle = "New Document Available";
         pushBody = `${details.documentName} uploaded to ${projectName}`;
         break;
+      case "client_task_assigned":
+        if (details.taskCount && details.taskCount > 1) {
+          pushTitle = "New Tasks Assigned";
+          pushBody = `${details.taskCount} new tasks added to ${projectName}`;
+        } else {
+          pushTitle = "New Task Assigned";
+          pushBody = details.taskTitle || "A new task needs your attention";
+        }
+        break;
     }
 
     await sendPushNotification(supabase, projectId, pushTitle, pushBody, projectUrl);
@@ -198,6 +209,31 @@ serve(async (req) => {
             ${emailButton('View Document', projectUrl)}
           `)}
         `;
+        break;
+      case "client_task_assigned":
+        if (details.taskCount && details.taskCount > 1) {
+          subject = `${details.taskCount} New Tasks for ${projectName}`;
+          emailContent = `
+            ${emailHeader("New Tasks Assigned", projectName)}
+            ${emailCard(`
+              ${paragraph(`Your action items have been updated!`)}
+              ${infoBox(`<strong>${details.taskCount} new tasks</strong> have been added to your project checklist.`, '📋')}
+              ${paragraph(`These tasks need your attention to keep your project moving forward.`)}
+              ${emailButton('View Your Tasks', projectUrl)}
+            `)}
+          `;
+        } else {
+          subject = `New Task: ${details.taskTitle}`;
+          emailContent = `
+            ${emailHeader("New Task Assigned", projectName)}
+            ${emailCard(`
+              ${paragraph(`A new task has been added to your project checklist:`)}
+              ${infoBox(`<strong>✅ ${details.taskTitle}</strong>`, '📋')}
+              ${paragraph(`This task needs your attention to keep your project moving forward.`)}
+              ${emailButton('View Task Details', projectUrl)}
+            `)}
+          `;
+        }
         break;
     }
 

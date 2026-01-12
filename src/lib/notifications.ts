@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 interface NotificationParams {
-  type: "project_status_changed" | "comment_added" | "document_uploaded";
+  type: "project_status_changed" | "comment_added" | "document_uploaded" | "client_task_assigned";
   projectId: string;
   projectName: string;
   clientEmail?: string;
@@ -12,6 +12,8 @@ interface NotificationParams {
     commentAuthor?: string;
     documentName?: string;
     uploaderName?: string;
+    taskTitle?: string;
+    taskCount?: number;
   };
 }
 
