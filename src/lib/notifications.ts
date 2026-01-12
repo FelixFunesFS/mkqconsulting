@@ -19,6 +19,13 @@ interface NotificationParams {
 
 export async function sendNotification(params: NotificationParams): Promise<void> {
   try {
+    // Ensure user is authenticated before calling the edge function
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log("No active session - skipping notification");
+      return;
+    }
+
     const { error } = await supabase.functions.invoke("send-notification", {
       body: params,
     });
