@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Install from "./pages/Install";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/install" element={<Install />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Admin Routes */}
