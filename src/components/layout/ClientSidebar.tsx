@@ -67,9 +67,18 @@ export function ClientSidebar() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const { isAuthenticated } = useAuth();
+
+  // Redirect to auth when user signs out
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    // Navigation handled by isAuthenticated effect
   };
 
   const isActive = (path: string) => {
