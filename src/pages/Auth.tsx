@@ -83,7 +83,7 @@ export default function Auth() {
               className="mx-auto mb-4 h-20 sm:h-24 w-auto object-contain"
             />
             <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-              Your Strategic Partner in Project Success
+              Where Vision Meets Execution
             </p>
             <CardTitle className="text-xl sm:text-2xl">Welcome</CardTitle>
             <CardDescription>
