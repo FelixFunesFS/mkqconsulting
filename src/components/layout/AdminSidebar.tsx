@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import mkgLogo from '@/assets/mkg-logo.png';
 import { 
   LayoutDashboard, 
   FolderKanban, 
@@ -53,12 +54,11 @@ export function AdminSidebar({ onNewProject }: AdminSidebarProps) {
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <span className="text-lg font-bold text-primary">W</span>
-            </div>
-            <span className="font-semibold text-foreground">Admin</span>
-          </div>
+          <img 
+            src={mkgLogo} 
+            alt="MKG Consulting" 
+            className="h-8 w-auto object-contain"
+          />
         )}
         <Button
           variant="ghost"
