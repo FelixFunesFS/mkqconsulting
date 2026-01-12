@@ -28,7 +28,7 @@ export function useAuth() {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `https://www.mkqconsulting.com/`;
     
     const { data, error } = await supabase.auth.signUp({
       email,

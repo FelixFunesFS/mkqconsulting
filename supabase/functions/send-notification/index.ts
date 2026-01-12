@@ -104,7 +104,7 @@ serve(async (req) => {
     const { type, projectId, projectName, clientEmail, details }: NotificationRequest = await req.json();
 
     // Portal URL for links
-    const portalUrl = `https://mkg-task-tracker.lovable.app/portal`;
+    const portalUrl = `https://www.mkqconsulting.com/portal`;
     const projectUrl = `${portalUrl}/project/${projectId}`;
 
     // Send push notification for all types
