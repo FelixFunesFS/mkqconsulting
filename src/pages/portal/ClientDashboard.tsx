@@ -44,12 +44,12 @@ export default function ClientDashboard() {
                 className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => navigate(`/portal/project/${project.id}`)}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-lg truncate">{project.businessName}</CardTitle>
-                    <Badge className={cn("shrink-0", statusColors[project.status])}>{statusLabels[project.status]}</Badge>
+              <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                    <CardTitle className="text-lg break-words leading-tight">{project.businessName}</CardTitle>
+                    <Badge className={cn("w-fit shrink-0", statusColors[project.status])}>{statusLabels[project.status]}</Badge>
                   </div>
-                  <CardDescription className="truncate">{project.clientName}</CardDescription>
+                  <CardDescription className="mt-1">{project.clientName}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
