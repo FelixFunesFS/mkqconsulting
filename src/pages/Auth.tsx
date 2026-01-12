@@ -91,7 +91,7 @@ export default function Auth() {
           <img 
             src={mkgLogo} 
             alt="MKG Consulting" 
-            className="h-28 w-auto object-contain mx-auto mb-8" 
+            className="h-28 w-auto object-contain mx-auto mb-8 rounded-xl" 
           />
           
           {/* Tagline */}
@@ -148,7 +148,7 @@ export default function Auth() {
                   <img 
                     src={mkgLogo} 
                     alt="MKG Consulting" 
-                    className="mx-auto mb-4 h-20 sm:h-24 w-auto object-contain"
+                    className="mx-auto mb-4 h-20 sm:h-24 w-auto object-contain rounded-xl"
                   />
                   <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                     Where Vision Meets Execution
