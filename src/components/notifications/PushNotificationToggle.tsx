@@ -41,7 +41,22 @@ export function PushNotificationToggle({
   };
 
   if (!isSupported) {
-    return null;
+    return (
+      <div className={`flex flex-col gap-2 ${className}`}>
+        <div className="flex items-center gap-3">
+          <BellOff className="h-4 w-4 text-muted-foreground" />
+          {showLabel && (
+            <Label className="flex-1 text-muted-foreground">
+              Push Notifications
+            </Label>
+          )}
+          <Switch disabled checked={false} aria-label="Push notifications not supported" />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Not available on this browser. For iOS, add this app to your home screen first.
+        </p>
+      </div>
+    );
   }
 
   return (
