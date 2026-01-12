@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useCreateClientTask } from '@/hooks/useClientTasks';
 import { useToast } from '@/hooks/use-toast';
 import { CATEGORY_LABELS, ClientTaskCategory, ClientTaskPriority } from '@/types/clientTask';
+import { sendNotification, getClientEmailForProject } from '@/lib/notifications';
 import { Loader2, CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -79,6 +80,23 @@ export function ClientTaskCreateDialog({ projectId, open, onOpenChange }: Client
         visibleToClient: formData.visibleToClient,
         source: 'manual',
       });
+
+      // Send notification if task is visible to client
+      if (formData.visibleToClient) {
+        const clientInfo = await getClientEmailForProject(projectId);
+        if (clientInfo) {
+          sendNotification({
+            type: 'client_task_assigned',
+            projectId,
+            projectName: clientInfo.projectName,
+            clientEmail: clientInfo.email,
+            details: {
+              taskTitle: formData.title.trim(),
+            },
+          });
+        }
+      }
+
       toast({
         title: 'Task created',
         description: 'New client task has been added.'

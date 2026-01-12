@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { useClientTaskTemplateSets, useApplyClientTaskTemplate } from '@/hooks/useClientTasks';
 import { toast } from '@/hooks/use-toast';
+import { sendNotification, getClientEmailForProject } from '@/lib/notifications';
 import { Loader2 } from 'lucide-react';
 
 interface ApplyTemplateDialogProps {
@@ -46,6 +47,22 @@ export function ApplyTemplateDialog({
         projectId,
         templateSet: selectedSet,
       });
+
+      // Send notification about new tasks
+      if (result.length > 0) {
+        const clientInfo = await getClientEmailForProject(projectId);
+        if (clientInfo) {
+          sendNotification({
+            type: 'client_task_assigned',
+            projectId,
+            projectName: clientInfo.projectName,
+            clientEmail: clientInfo.email,
+            details: {
+              taskCount: result.length,
+            },
+          });
+        }
+      }
 
       toast({
         title: 'Template Applied',
