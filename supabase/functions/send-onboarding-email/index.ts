@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   emailWrapper,
   emailHeader,
@@ -64,16 +64,16 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
-    // Create client with user's auth token to validate JWT
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    // Use service role client for all operations including user verification
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    if (userError || !user) {
+    // Extract and verify the JWT token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !userData?.user) {
       console.error('JWT verification failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized - invalid token' }), 
@@ -81,12 +81,10 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const userId = user.id;
+    const userId = userData.user.id;
     console.log('Authenticated user:', userId);
 
-    // Use service role client for database operations
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Check if user has admin role
 
     // Check if user has admin role
     const { data: roles, error: rolesError } = await supabase
