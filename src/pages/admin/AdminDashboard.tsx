@@ -40,7 +40,7 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar onNewProject={() => setProjectDialogOpen(true)} />
-      <main className="flex-1 overflow-auto p-8">
+      <main className="flex-1 overflow-auto p-4 md:p-8">
         <Dashboard
           projects={projects}
           onProjectClick={(p) => { setSelectedProject(p); setShowTasks(true); }}
