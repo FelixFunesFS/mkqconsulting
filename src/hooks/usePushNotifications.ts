@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-// Get VAPID public key from environment
+// VAPID public key for push subscriptions
+// This is the PUBLIC key - safe to include in client code
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
 
 interface UsePushNotificationsReturn {

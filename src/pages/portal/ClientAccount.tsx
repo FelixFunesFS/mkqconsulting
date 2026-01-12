@@ -12,8 +12,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, User, Mail, Phone, Building2, Save, ImageIcon } from 'lucide-react';
+import { Loader2, User, Mail, Phone, Building2, Save, ImageIcon, Bell } from 'lucide-react';
 import { ClientLogoUploader } from '@/components/clients/ClientLogoUploader';
+import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -258,6 +259,25 @@ export default function ClientAccount() {
                   )}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          {/* Notifications Card */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notifications
+              </CardTitle>
+              <CardDescription>
+                Manage how you receive project updates
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <PushNotificationToggle />
+              <p className="text-sm text-muted-foreground">
+                Get instant alerts when your project is updated, even when the app is closed.
+              </p>
             </CardContent>
           </Card>
         </div>

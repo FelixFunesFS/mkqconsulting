@@ -4,9 +4,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useAdminSettings, useUpdateAdminSettings } from '@/hooks/useAdminSettings';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Loader2 } from 'lucide-react';
+import { Settings, Loader2, Bell } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { PushNotificationToggle } from '@/components/notifications/PushNotificationToggle';
 export default function AdminSettings() {
   const { data: settings, isLoading } = useAdminSettings();
   const updateSettings = useUpdateAdminSettings();
@@ -134,6 +134,25 @@ export default function AdminSettings() {
                     </div>
                   </>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Push Notifications
+                </CardTitle>
+                <CardDescription>
+                  Receive instant notifications on your device
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <PushNotificationToggle />
+                <p className="text-sm text-muted-foreground">
+                  Enable push notifications to receive alerts even when the app is closed.
+                  Works best when installed as a PWA on your device.
+                </p>
               </CardContent>
             </Card>
           </div>
