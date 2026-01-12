@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -67,14 +67,18 @@ export function ClientSidebar() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const wasAuthenticated = useRef(false);
 
   // Redirect to auth when user signs out
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && isAuthenticated) {
+      wasAuthenticated.current = true;
+    }
+    if (!authLoading && !isAuthenticated && wasAuthenticated.current) {
       navigate('/auth');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
