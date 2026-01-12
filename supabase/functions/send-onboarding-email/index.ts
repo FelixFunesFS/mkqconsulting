@@ -1,5 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import {
+  emailWrapper,
+  emailHeader,
+  emailCard,
+  emailButton,
+  infoBox,
+  sectionHeading,
+  paragraph,
+  divider,
+  brandColors,
+} from "../_shared/email-template.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +24,28 @@ interface OnboardingEmailRequest {
   projectName: string;
   portalUrl: string;
 }
+
+const categoryIcons: Record<string, string> = {
+  access: "🔑",
+  approvals: "✅",
+  content: "📝",
+  assets: "🖼️",
+  messaging: "💬",
+  incentives: "🎁",
+  seo: "📍",
+  other: "📋",
+};
+
+const categoryLabels: Record<string, string> = {
+  access: "Priority Access",
+  approvals: "Approvals",
+  content: "Content",
+  assets: "Assets",
+  messaging: "Messaging",
+  incentives: "Incentives",
+  seo: "Local SEO",
+  other: "Other",
+};
 
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -109,17 +142,6 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Group tasks by category for email
-    const categoryLabels: Record<string, string> = {
-      access: "Priority Access",
-      approvals: "Approvals",
-      content: "Content",
-      assets: "Assets",
-      messaging: "Messaging",
-      incentives: "Incentives",
-      seo: "Local SEO",
-      other: "Other",
-    };
-
     const tasksByCategory = (tasks || []).reduce((acc, task) => {
       const category = task.category || "other";
       if (!acc[category]) acc[category] = [];
@@ -130,64 +152,75 @@ serve(async (req: Request): Promise<Response> => {
     // Build task list HTML
     let taskListHtml = "";
     for (const [category, categoryTasks] of Object.entries(tasksByCategory)) {
+      const icon = categoryIcons[category] || "📋";
+      const label = categoryLabels[category] || category;
+      
       taskListHtml += `
-        <h3 style="color: #374151; margin: 20px 0 10px 0; font-size: 16px;">
-          ${categoryLabels[category] || category}
-        </h3>
-        <ul style="margin: 0; padding-left: 20px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px;">
+          <tr>
+            <td>
+              <h3 style="margin: 0 0 12px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; font-weight: 600; color: ${brandColors.darkGray};">
+                ${icon} ${label}
+              </h3>
+            </td>
+          </tr>
       `;
+      
       for (const task of categoryTasks as any[]) {
         taskListHtml += `
-          <li style="margin: 8px 0; color: #4b5563;">
-            <strong>${task.title}</strong>
-            ${task.why_needed ? `<br><span style="font-size: 13px; color: #6b7280;">${task.why_needed}</span>` : ""}
-          </li>
+          <tr>
+            <td style="padding: 8px 0 8px 24px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="width: 8px; vertical-align: top; padding-top: 6px;">
+                    <div style="width: 6px; height: 6px; background-color: ${brandColors.info}; border-radius: 50%;"></div>
+                  </td>
+                  <td style="padding-left: 12px;">
+                    <p style="margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 500; color: ${brandColors.darkGray};">
+                      ${task.title}
+                    </p>
+                    ${task.why_needed ? `
+                    <p style="margin: 4px 0 0 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: ${brandColors.gray};">
+                      ${task.why_needed}
+                    </p>` : ''}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
         `;
       }
-      taskListHtml += "</ul>";
+      taskListHtml += "</table>";
     }
 
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Welcome to Your Project Portal</h1>
-          </div>
-          
-          <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-            <p style="font-size: 16px;">Hi ${clientName},</p>
-            
-            <p>We're excited to get started on <strong>${projectName}</strong>! To help us build the best possible website for your business, we need a few things from you.</p>
-            
-            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h2 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px;">📋 Your Task Checklist</h2>
-              ${taskListHtml || "<p>No tasks assigned yet.</p>"}
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${portalUrl}" style="display: inline-block; background: #3b82f6; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-                Access Your Portal
-              </a>
-            </div>
-            
-            <p style="color: #6b7280; font-size: 14px;">
-              You can complete these tasks at your convenience through your client portal. We'll keep you updated on progress as we work together.
-            </p>
-            
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
-            
-            <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-              Questions? Just reply to this email and we'll help you out.
-            </p>
-          </div>
-        </body>
-      </html>
+    // Build the full email
+    const emailContent = `
+      ${emailHeader("Welcome to Your Project Portal", `Let's build something amazing for ${projectName}`)}
+      ${emailCard(`
+        ${paragraph(`Hi <strong>${clientName}</strong>,`)}
+        ${paragraph(`We're thrilled to get started on <strong>${projectName}</strong>! To help us build the perfect website for your business, we've prepared a personalized task checklist for you.`)}
+        
+        ${infoBox(`
+          <strong>What's Next?</strong><br>
+          Complete the tasks below at your convenience. Each task helps us understand your vision and gather the materials we need to create something exceptional.
+        `, '🚀')}
+        
+        ${sectionHeading('📋 Your Task Checklist')}
+        
+        ${taskListHtml || paragraph('No tasks assigned yet. Check back soon!')}
+        
+        ${emailButton('Access Your Portal', portalUrl)}
+        
+        ${divider()}
+        
+        ${paragraph(`<span style="color: ${brandColors.gray}; font-size: 14px;">You can complete these tasks at your own pace through your client portal. We'll notify you of progress updates as we work together to bring your vision to life.</span>`)}
+      `)}
     `;
+
+    const emailHtml = emailWrapper(
+      emailContent, 
+      `Your project ${projectName} is ready! Complete your onboarding tasks to get started.`
+    );
 
     // Send email via Resend
     const resendResponse = await fetch("https://api.resend.com/emails", {
@@ -199,7 +232,7 @@ serve(async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "MKQ Consulting <envision@mkqconsulting.com>",
         to: [clientEmail],
-        subject: `Welcome to ${projectName} - Your Task Checklist`,
+        subject: `Welcome to ${projectName} — Your Task Checklist`,
         html: emailHtml,
       }),
     });
