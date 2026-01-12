@@ -20,6 +20,66 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Validate authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      console.error('Missing or invalid Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - missing authorization' }), 
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    // Create client with user's auth token to validate JWT
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    
+    if (userError || !user) {
+      console.error('JWT verification failed:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - invalid token' }), 
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userId = user.id;
+    console.log('Authenticated user:', userId);
+
+    // Use service role client for database operations
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Check if user has admin role
+    const { data: roles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin');
+
+    if (rolesError) {
+      console.error('Error checking user role:', rolesError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify permissions' }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!roles || roles.length === 0) {
+      console.error('User does not have admin role:', userId);
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - admin access required' }), 
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Admin role verified for user:', userId);
+
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
     if (!resendApiKey) {
@@ -34,11 +94,6 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const { projectId, clientEmail, clientName, projectName, portalUrl }: OnboardingEmailRequest = await req.json();
-
-    // Fetch client tasks for this project
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: tasks, error: tasksError } = await supabase
       .from("client_tasks")
