@@ -32,7 +32,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
     setError(null);
     
     try {
-      const redirectUrl = `${window.location.origin}/reset-password`;
+      const redirectUrl = `https://www.mkqconsulting.com/reset-password`;
       
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: redirectUrl,

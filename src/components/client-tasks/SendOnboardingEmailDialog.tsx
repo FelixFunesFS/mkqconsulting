@@ -26,7 +26,7 @@ export function SendOnboardingEmailDialog({
   const handleSend = async () => {
     setSending(true);
     try {
-      const portalUrl = `${window.location.origin}/portal`;
+      const portalUrl = `https://www.mkqconsulting.com/portal`;
       
       const { data, error } = await supabase.functions.invoke("send-onboarding-email", {
         body: {
