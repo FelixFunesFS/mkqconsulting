@@ -1,49 +1,38 @@
 
 
-## Plan: Fix Marketing Task Card Right-Side Cropping
+## Final Fix: Task Card Cropping (For Real This Time)
 
-### Root Cause
+### Why the last 5 fixes didn't work
 
-The issue is **not** in `TaskCard.tsx` (that fix was correct but insufficient). The cropping comes from the parent layout in `ProjectTasksDialog.tsx`:
+Looking at the actual code, **the root cause fix was never applied**. Every conversation discussed it, planned it, but only the TaskCard changes were saved. The scroll-area.tsx file is completely untouched -- it's identical to the default shadcn/ui component.
 
-```
-DialogContent (max-w-[95vw], overflow-hidden)
-  -> TabsContent (overflow-hidden)
-    -> ScrollArea (overflow-hidden + pr-4 on ROOT)
-      -> Viewport (overflow: scroll, w-full)
-        -> TaskList -> TaskCard
-```
+The critical issue: Radix UI's ScrollArea Viewport injects an internal div with `display: table` inline style. In table layout, content expands to fit text instead of being constrained by container width. This overrides every flex-based fix applied to TaskCard (`min-w-0`, `break-words`, `shrink-0`).
 
-The `pr-4` (right padding) is applied to the `ScrollArea` root which has `overflow-hidden`. This means the padding is outside the visible area of the viewport. The Radix ScrollArea viewport clips content at the root's boundary, cutting off the rightmost ~16px of task cards.
+### The Fix (2 files, 2 lines each)
 
-Web dev cards appear fine because their titles are shorter, so the three-dot button stays within bounds. Marketing cards have longer titles that push the layout wider, causing the button to hit the clipping edge.
+**File 1: `src/components/ui/scroll-area.tsx` (line 11) -- THE CRITICAL FIX**
 
-### The Fix
+Override the Radix-injected `display: table` on the internal wrapper div:
 
-**File: `src/components/tasks/ProjectTasksDialog.tsx` (line 220)**
+- Before: `className="h-full w-full rounded-[inherit]"`
+- After: `className="h-full w-full rounded-[inherit] [&>div]:!block"`
 
-Move `pr-4` from the ScrollArea root to the content inside it, so the padding is within the scrollable viewport:
+This single change makes all the existing TaskCard fixes (min-w-0, break-words, shrink-0) actually work.
 
-- Change: `<ScrollArea className="h-full pr-4">` 
-- To: `<ScrollArea className="h-full">`
+**File 2: `src/components/tasks/TaskCard.tsx` (line 35) -- SAFETY NET**
 
-**File: `src/components/tasks/TaskList.tsx`**
+Add `overflow-hidden` to the card root as defense-in-depth:
 
-Add `pr-4` to the outermost wrapper div so the padding is inside the scrollable content:
+- Before: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30'`
+- After: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30 overflow-hidden'`
 
-- Change: `<div className="space-y-4">`
-- To: `<div className="space-y-4 pr-4">`
+The DropdownMenu uses a portal so it renders outside this div and won't be clipped.
 
-Also add the same padding to the empty state container for consistency.
+### How to verify it worked
 
-### Why This Works
+After implementation, open a project with Marketing tasks (long titles). The three-dot menu button should be fully visible on every card, and long titles should wrap to a second line instead of pushing content off-screen.
 
-By moving the padding inside the scrollable viewport, the task cards have proper breathing room on the right without being clipped by the `overflow-hidden` on the ScrollArea root. This affects all domains equally -- web dev, marketing, and general -- ensuring consistent rendering.
+### Why it will work this time
 
-### Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/components/tasks/ProjectTasksDialog.tsx` | Remove `pr-4` from ScrollArea |
-| `src/components/tasks/TaskList.tsx` | Add `pr-4` to the content wrapper div |
+The existing TaskCard fixes are correct -- they just need the scroll area to use block layout instead of table layout. With `display: block`, the container constrains its children to its width, allowing `min-w-0` to let the title shrink and `break-words` to wrap the text. This is standard CSS behavior.
 
