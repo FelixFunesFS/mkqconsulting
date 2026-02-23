@@ -217,7 +217,7 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
             </TabsList>
             
             <TabsContent value="tasks" className="flex-1 min-h-0 overflow-hidden mt-4">
-              <ScrollArea className="h-full pr-4">
+              <ScrollArea className="h-full">
                 {isLoadingTasks ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
