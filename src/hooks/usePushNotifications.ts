@@ -85,7 +85,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
         if (isAuthenticated && Notification.permission === 'granted') {
           try {
             const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
+            const subscription = await (registration as any).pushManager.getSubscription();
             setIsSubscribed(!!subscription);
             console.log('[Push] Existing subscription:', !!subscription);
           } catch (err) {
@@ -141,7 +141,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
       // Subscribe to push
       const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-      const subscription = await registration.pushManager.subscribe({
+      const subscription = await (registration as any).pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: applicationServerKey as BufferSource,
       });
@@ -184,7 +184,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager.getSubscription();
 
       if (subscription) {
         await subscription.unsubscribe();

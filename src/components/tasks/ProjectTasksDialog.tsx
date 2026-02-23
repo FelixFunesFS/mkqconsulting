@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { TaskList } from './TaskList';
 import { TaskEditDialog } from './TaskEditDialog';
 import { TaskCreateDialog } from './TaskCreateDialog';
+import { GenerateFromPromptDialog } from './GenerateFromPromptDialog';
 import { ActivityTimeline } from '@/components/activities/ActivityTimeline';
 import { AddNoteDialog } from '@/components/activities/AddNoteDialog';
 import { CommentThread } from '@/components/comments/CommentThread';
@@ -29,6 +30,7 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
+  const [showPromptDialog, setShowPromptDialog] = useState(false);
 
   const { data: tasks = [], isLoading: isLoadingTasks } = useTasks(project?.id);
   const { data: questionnaire } = useQuestionnaire(project?.id);
@@ -136,6 +138,31 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
     setShowCreateDialog(true);
   };
 
+  const handleGenerateFromPrompt = async (customPrompt: string, phase: string) => {
+    if (!project) return;
+    try {
+      const result = await generateTasks.mutateAsync({
+        projectId: project.id,
+        questionnaire: {},
+        projectName: project.businessName,
+        currentPhase: phase,
+        mode: 'add_new',
+        customPrompt,
+      });
+      toast({
+        title: 'Tasks Generated',
+        description: `Generated ${result.count} tasks from your content.`,
+      });
+      setShowPromptDialog(false);
+    } catch (error) {
+      toast({
+        title: 'Generation Failed',
+        description: error instanceof Error ? error.message : 'Failed to generate tasks',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleCreateTask = async (task: {
     project_id: string;
     title: string;
@@ -206,6 +233,7 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
                     onDelete={handleDelete}
                     onGenerateTasks={handleGenerateTasks}
                     onAddTask={handleAddTask}
+                    onGenerateFromPrompt={() => setShowPromptDialog(true)}
                   />
                 )}
               </ScrollArea>
@@ -278,6 +306,13 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
             projectId={project.id}
             open={showAddNoteDialog}
             onOpenChange={setShowAddNoteDialog}
+          />
+          <GenerateFromPromptDialog
+            open={showPromptDialog}
+            onOpenChange={setShowPromptDialog}
+            onGenerate={handleGenerateFromPrompt}
+            isGenerating={generateTasks.isPending}
+            defaultPhase={project.status}
           />
         </>
       )}
