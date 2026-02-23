@@ -138,14 +138,14 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
     setShowCreateDialog(true);
   };
 
-  const handleGenerateFromPrompt = async (customPrompt: string, phase: string) => {
+  const handleGenerateFromPrompt = async (customPrompt: string) => {
     if (!project) return;
     try {
       const result = await generateTasks.mutateAsync({
         projectId: project.id,
         questionnaire: {},
         projectName: project.businessName,
-        currentPhase: phase,
+        currentPhase: project.status,
         mode: 'add_new',
         customPrompt,
       });
@@ -312,7 +312,6 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
             onOpenChange={setShowPromptDialog}
             onGenerate={handleGenerateFromPrompt}
             isGenerating={generateTasks.isPending}
-            defaultPhase={project.status}
           />
         </>
       )}

@@ -334,16 +334,74 @@ serve(async (req) => {
       return sections.join('\n\n');
     };
 
+    // Phase library for custom prompt validation
+    const VALID_CUSTOM_PHASES = [
+      'content_strategy', 'content_creation', 'social_media', 'email_marketing',
+      'paid_ads', 'analytics', 'planning', 'research', 'operations', 'reporting',
+      'discovery', 'design', 'development', 'review', 'published'
+    ];
+
+    // Fuzzy phase mapping for AI output normalization
+    const PHASE_FUZZY_MAP: Record<string, string> = {
+      'social': 'social_media', 'social media': 'social_media', 'social posts': 'social_media',
+      'content': 'content_creation', 'writing': 'content_creation', 'blog': 'content_creation',
+      'blogs': 'content_creation', 'copywriting': 'content_creation',
+      'strategy': 'content_strategy', 'content plan': 'content_strategy',
+      'email': 'email_marketing', 'emails': 'email_marketing', 'newsletter': 'email_marketing',
+      'ads': 'paid_ads', 'advertising': 'paid_ads', 'ppc': 'paid_ads',
+      'tracking': 'analytics', 'metrics': 'analytics', 'data': 'analytics',
+      'plan': 'planning', 'setup': 'planning', 'kickoff': 'planning',
+      'market research': 'research', 'analysis': 'research', 'audit': 'research',
+      'process': 'operations', 'workflow': 'operations', 'automation': 'operations',
+      'report': 'reporting', 'reports': 'reporting', 'summary': 'reporting',
+    };
+
+    function normalizePhase(phase: string, isCustomPrompt: boolean): string {
+      const cleaned = sanitize(phase, 50).toLowerCase().replace(/[^a-z_\s]/g, '').trim();
+      if (isCustomPrompt) {
+        if (VALID_CUSTOM_PHASES.includes(cleaned)) return cleaned;
+        const fuzzy = PHASE_FUZZY_MAP[cleaned];
+        if (fuzzy) return fuzzy;
+        // Try partial match
+        for (const [key, value] of Object.entries(PHASE_FUZZY_MAP)) {
+          if (cleaned.includes(key) || key.includes(cleaned)) return value;
+        }
+        return 'planning'; // default fallback
+      }
+      // For questionnaire mode, keep existing web dev validation
+      const validWebDevPhases = ['discovery', 'design', 'development', 'review', 'published'];
+      return validWebDevPhases.includes(cleaned) ? cleaned : 'discovery';
+    }
+
     const systemPrompt = sanitizedCustomPrompt
       ? `You are an expert project manager for MKQ Consulting. Your job is to analyze plans, strategies, and content provided by the user and break them into actionable, trackable tasks.
 
 For each task, you MUST return a JSON object with these exact fields:
 - title: Brief, actionable task title (max 60 chars)
 - description: Clear description of what needs to be done (1-2 sentences)
-- phase: One of: discovery, design, development, review, published
+- phase: MUST be one from the allowed list below
 - priority: One of: low, medium, high, critical
 - estimated_hours: Number (realistic estimate)
 - questionnaire_field: A category label for this task (e.g., "marketing", "content", "seo", "social_media", "email", "strategy", "operations")
+
+You MUST assign each task to one of these phases only:
+- content_strategy: Planning content pillars, calendars, themes
+- content_creation: Writing blogs, articles, long-form content
+- social_media: Social posts, reels, carousels, community management
+- email_marketing: Newsletters, drip campaigns, automations
+- paid_ads: Ad creation, targeting, budget management
+- analytics: Tracking, reporting, performance review
+- planning: General project planning and coordination
+- research: Market research, competitor analysis
+- operations: Process setup, tooling, workflows
+- reporting: Status reports, client updates, summaries
+- discovery: Research, planning, requirements gathering (web dev)
+- design: UI/UX design, mockups, prototypes (web dev)
+- development: Coding, building, integrating (web dev)
+- review: Testing, QA, client review, revisions (web dev)
+- published: Launch, deployment, monitoring, maintenance (web dev)
+
+Do NOT invent new phase names. Pick the closest match from this list.
 
 Guidelines:
 - Generate as many tasks as needed to fully cover the plan (typically 10-40)
@@ -474,7 +532,7 @@ Generate a JSON array of tasks. Return ONLY the JSON array, no other text. Examp
     const validatedTasks = tasks.slice(0, 50).map((task: Record<string, unknown>) => {
       const title = sanitize(task.title, 60);
       const description = sanitize(task.description, 500);
-      const phase = validPhases.includes(String(task.phase)) ? String(task.phase) : 'discovery';
+      const phase = normalizePhase(String(task.phase), !!sanitizedCustomPrompt);
       const priority = validPriorities.includes(String(task.priority)) ? String(task.priority) : 'medium';
       const estimatedHours = typeof task.estimated_hours === 'number' 
         ? Math.min(Math.max(task.estimated_hours, 0), 1000) 

@@ -1,5 +1,5 @@
 import { Task } from '@/types/task';
-import { statusLabels as phaseLabels } from '@/types/project';
+import { getPhaseLabel, getActivePhases, WEB_DEV_PHASES } from '@/types/phases';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +28,7 @@ const statusConfig = {
   blocked: { icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10', label: 'Blocked' },
 };
 
-const phases = ['discovery', 'design', 'development', 'review', 'published'] as const;
+// Phases are now computed dynamically from task data
 
 function TaskItem({ task }: { task: Task }) {
   const config = statusConfig[task.status];
@@ -69,7 +69,7 @@ function PhaseSection({ phase, tasks }: { phase: string; tasks: Task[] }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="font-medium text-sm">{phaseLabels[phase]}</h4>
+        <h4 className="font-medium text-sm">{getPhaseLabel(phase)}</h4>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
             {completed}/{tasks.length}
@@ -112,11 +112,14 @@ export function ClientTaskList({ tasks, projectId, isLoading, maxHeight = '500px
     );
   }
 
+  // Compute dynamic phases from tasks
+  const dynamicPhases = getActivePhases(tasks);
+
   // Group tasks by phase
-  const tasksByPhase = phases.reduce((acc, phase) => {
-    const phaseTasks = tasks.filter(t => t.phase === phase);
+  const tasksByPhase = dynamicPhases.reduce((acc, phase) => {
+    const phaseTasks = tasks.filter(t => t.phase === phase.id);
     if (phaseTasks.length > 0) {
-      acc[phase] = phaseTasks;
+      acc[phase.id] = phaseTasks;
     }
     return acc;
   }, {} as Record<string, Task[]>);
@@ -156,10 +159,10 @@ export function ClientTaskList({ tasks, projectId, isLoading, maxHeight = '500px
       >
         <ScrollArea className="h-full">
           <div className="space-y-6 pr-4">
-            {phases.map(phase => {
-              const phaseTasks = tasksByPhase[phase];
+            {dynamicPhases.map(phase => {
+              const phaseTasks = tasksByPhase[phase.id];
               if (!phaseTasks) return null;
-              return <PhaseSection key={phase} phase={phase} tasks={phaseTasks} />;
+              return <PhaseSection key={phase.id} phase={phase.id} tasks={phaseTasks} />;
             })}
           </div>
         </ScrollArea>
