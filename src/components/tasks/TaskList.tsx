@@ -131,7 +131,7 @@ export function TaskList({
 
   if (tasks.length === 0 && !isGenerating) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      <div className="flex flex-col items-center justify-center py-12 px-4 pr-4 text-center">
         <div className="rounded-full bg-primary/10 p-4 mb-4">
           <Sparkles className="h-8 w-8 text-primary" />
         </div>
@@ -170,7 +170,7 @@ export function TaskList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pr-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           {onGenerateTasks && (
