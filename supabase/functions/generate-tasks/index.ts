@@ -170,8 +170,12 @@ serve(async (req) => {
       );
     }
 
-    const { projectId, questionnaire, projectName, currentPhase, mode } = requestBody;
+    const { projectId, questionnaire, projectName, currentPhase, mode, customPrompt } = requestBody;
     
+    // Validate and sanitize custom prompt if provided
+    const MAX_CUSTOM_PROMPT_LENGTH = 10000;
+    const sanitizedCustomPrompt = customPrompt ? sanitize(customPrompt, MAX_CUSTOM_PROMPT_LENGTH) : null;
+
     // Validate required fields
     if (!projectId) {
       return new Response(
@@ -330,7 +334,24 @@ serve(async (req) => {
       return sections.join('\n\n');
     };
 
-    const systemPrompt = `You are an expert web development project manager for MKQ Consulting. Your job is to analyze client questionnaires and generate comprehensive, actionable task lists for web development projects.
+    const systemPrompt = sanitizedCustomPrompt
+      ? `You are an expert project manager for MKQ Consulting. Your job is to analyze plans, strategies, and content provided by the user and break them into actionable, trackable tasks.
+
+For each task, you MUST return a JSON object with these exact fields:
+- title: Brief, actionable task title (max 60 chars)
+- description: Clear description of what needs to be done (1-2 sentences)
+- phase: One of: discovery, design, development, review, published
+- priority: One of: low, medium, high, critical
+- estimated_hours: Number (realistic estimate)
+- questionnaire_field: A category label for this task (e.g., "marketing", "content", "seo", "social_media", "email", "strategy", "operations")
+
+Guidelines:
+- Generate as many tasks as needed to fully cover the plan (typically 10-40)
+- Each task should be specific and actionable, not vague
+- Group related items logically
+- Estimate hours realistically
+- Distribute across appropriate phases based on the content`
+      : `You are an expert web development project manager for MKQ Consulting. Your job is to analyze client questionnaires and generate comprehensive, actionable task lists for web development projects.
 
 You must generate tasks across 5 project phases:
 1. **discovery** - Research, planning, requirements gathering
@@ -356,7 +377,15 @@ Guidelines:
 - Add tasks for any integrations or special features mentioned
 - Consider the current project phase when setting priorities`;
 
-    const userPrompt = `Analyze this client questionnaire and generate a comprehensive task list for their web development project.
+    const userPrompt = sanitizedCustomPrompt
+      ? `Break the following plan/content into actionable tasks for the project "${sanitizedProjectName}".
+Prefer assigning tasks to the "${validatedPhase}" phase unless the content clearly belongs elsewhere.
+
+**Plan/Content:**
+${sanitizedCustomPrompt}
+
+Generate a JSON array of tasks. Return ONLY the JSON array, no other text.`
+      : `Analyze this client questionnaire and generate a comprehensive task list for their web development project.
 
 **Project:** ${sanitizedProjectName}
 **Current Phase:** ${validatedPhase}
@@ -463,7 +492,8 @@ Generate a JSON array of tasks. Return ONLY the JSON array, no other text. Examp
     }).filter((task: { title: string }) => task.title && task.title !== 'Untitled Task');
 
     // Handle different modes for task management
-    if (validatedMode === 'regenerate') {
+    // Custom prompt always uses 'add_new' behavior (never deletes existing tasks)
+    if (validatedMode === 'regenerate' && !sanitizedCustomPrompt) {
       // Delete only PENDING AI-generated tasks, preserve completed ones
       const { error: deleteError } = await supabase
         .from('tasks')

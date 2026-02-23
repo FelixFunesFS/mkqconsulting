@@ -191,15 +191,17 @@ export function useGenerateTasks() {
       projectName,
       currentPhase,
       mode = 'regenerate',
+      customPrompt,
     }: {
       projectId: string;
       questionnaire: any;
       projectName: string;
       currentPhase: string;
       mode?: 'regenerate' | 'add_new';
+      customPrompt?: string;
     }) => {
       const { data, error } = await supabase.functions.invoke('generate-tasks', {
-        body: { projectId, questionnaire, projectName, currentPhase, mode },
+        body: { projectId, questionnaire, projectName, currentPhase, mode, customPrompt },
       });
 
       if (error) throw error;

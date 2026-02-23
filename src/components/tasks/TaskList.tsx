@@ -4,7 +4,7 @@ import { TaskCard } from './TaskCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { statusLabels as phaseLabels } from '@/types/project';
-import { Plus, Sparkles, Loader2, ClipboardCheck } from 'lucide-react';
+import { Plus, Sparkles, Loader2, ClipboardCheck, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTaskTemplates, useApplyTemplates } from '@/hooks/useTaskTemplates';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ interface TaskListProps {
   onDelete?: (taskId: string) => void;
   onGenerateTasks?: () => void;
   onAddTask?: () => void;
+  onGenerateFromPrompt?: () => void;
 }
 
 const phases = ['discovery', 'design', 'development', 'review', 'published'] as const;
@@ -33,6 +34,7 @@ export function TaskList({
   onDelete,
   onGenerateTasks,
   onAddTask,
+  onGenerateFromPrompt,
 }: TaskListProps) {
   const [activePhase, setActivePhase] = useState<string>(projectPhase);
   const { data: templates } = useTaskTemplates();
@@ -140,6 +142,12 @@ export function TaskList({
             <Button variant="outline" size="sm" onClick={onAddTask}>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
+            </Button>
+          )}
+          {onGenerateFromPrompt && (
+            <Button variant="outline" size="sm" onClick={onGenerateFromPrompt}>
+              <Wand2 className="h-4 w-4 mr-2" />
+              From Prompt
             </Button>
           )}
           <Button
