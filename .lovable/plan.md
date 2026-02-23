@@ -1,99 +1,31 @@
 
-
-## Plan: Two-Level Phase Navigation for Tasks
+## Plan: Fix Task Card Edit Button Visibility
 
 ### The Problem
 
-With phases spanning Web Development, Marketing, and General domains, the tab bar can show 10+ tabs that get cut off, especially on mobile. You can't see or access all phases.
+The three-dot edit menu on task cards is hidden (`opacity-0`) until hover and can get visually squeezed by long task titles. Marketing phase tasks tend to have longer titles than web dev tasks, making this worse. On touch devices, the hover-to-reveal pattern doesn't work at all.
 
-### The Solution: Domain Filter + Phase Tabs
+### The Fix
 
-Add a simple domain selector row above the phase tabs. Only phases for the selected domain are shown as tabs, keeping the bar to 3-6 items max.
+Two small changes to `src/components/tasks/TaskCard.tsx`:
 
-```text
-[Web Development]  [Marketing]  [General]     <-- domain selector (compact toggle group)
-[Discovery] [Design] [Development] ...         <-- phase tabs (filtered to selected domain)
-```
+**1. Always show the menu button (remove opacity trick)**
 
-- The domain selector only shows domains that have tasks (no empty categories)
-- Defaults to the domain containing the most tasks
-- Phase tabs remain exactly as they are today, just filtered
-- Mobile-friendly: domain buttons are small, phase tabs stay short
+Replace the hover-only visibility (`opacity-0 group-hover:opacity-100`) with always-visible styling. The button is already small (`h-6 w-6`) and unobtrusive -- hiding it creates accessibility and discoverability problems.
 
-### Changes Required
+**2. Prevent the button from being squeezed**
 
-**1. Update `src/components/tasks/TaskList.tsx`**
+Add `shrink-0` to the menu button so it never gets compressed by long titles. This ensures the 24px button always has its full space regardless of title length.
 
-- Group active phases by domain using the phase library
-- Add a `domainFilter` state (defaults to whichever domain has the most tasks)
-- Render a row of small toggle buttons for each domain that has tasks (e.g., "Web Dev", "Marketing", "General")
-- Filter the phase tabs to only show phases from the selected domain
-- Show task counts per domain on the toggle buttons (e.g., "Marketing (12)")
-- Keep all existing functionality (action buttons, stats, task cards) unchanged
-
-**2. Update `src/components/tasks/ClientTaskList.tsx`**
-
-- Same domain grouping logic for the client portal view
-- Group the scrollable phase sections under domain headers
-- Each domain header shows its name and overall progress (e.g., "Marketing -- 4/12 tasks")
-- Collapsible domain sections so clients can focus on one area
-
-**3. Update `src/types/phases.ts`**
-
-- Add a helper function `groupPhasesByDomain(phases)` that returns phases organized by domain
-- Add domain labels map: `{ web_dev: "Web Development", marketing: "Marketing", general: "General" }`
-
-### Visual Layout (Admin TaskList)
-
-```text
-+--------------------------------------------------+
-| [Regenerate] [Add Task] [From Prompt] [Checklist] |
-|                              8 of 24 completed    |
-+--------------------------------------------------+
-| Web Dev (12)  |  Marketing (8)  |  General (4)    |  <-- domain toggles
-+--------------------------------------------------+
-| [Content Strategy] [Content Creation] [Social..] |  <-- phase tabs (filtered)
-+--------------------------------------------------+
-| Task cards for selected phase...                  |
-+--------------------------------------------------+
-```
-
-### Visual Layout (Client TaskList)
-
-The client view already uses a scrollable list with phase sections rather than tabs, so the change is lighter:
-
-- Add domain header dividers between groups of phases
-- e.g., "--- Web Development ---" then Discovery, Design sections, then "--- Marketing ---" then Content Strategy, Social Media sections
-
-### Technical Details
-
-**New helper in `src/types/phases.ts`:**
-
-```
-DOMAIN_LABELS = { web_dev: "Web Dev", marketing: "Marketing", general: "General" }
-
-groupPhasesByDomain(phases: PhaseDefinition[]):
-  -> Record<string, PhaseDefinition[]>
-  Groups the provided phases by their domain property
-```
-
-**State management in TaskList:**
-
-- `domainFilter`: which domain is currently selected
-- Auto-selects the domain with the most tasks on initial render
-- When switching domains, auto-selects the first phase tab in that domain
-
-### Files to Modify
+### Changes
 
 | File | Change |
 |------|--------|
-| `src/types/phases.ts` | Add `DOMAIN_LABELS` and `groupPhasesByDomain` helper |
-| `src/components/tasks/TaskList.tsx` | Add domain toggle row, filter phase tabs by domain |
-| `src/components/tasks/ClientTaskList.tsx` | Add domain headers between phase groups |
+| `src/components/tasks/TaskCard.tsx` | Remove `opacity-0 group-hover:opacity-100` from the menu trigger button, add `shrink-0` to prevent it from being squeezed |
 
-### What Stays the Same
+### What Changes Visually
 
-- All action buttons (Regenerate, Add Task, From Prompt, Checklist)
-- Task cards, status changes, edit/delete
-- Phase tab behavior (click to view tasks in that phase)
-- The phase library and AI generation logic
+- The three-dot menu icon is always visible (subtle ghost button)
+- Works on mobile/touch where hover isn't available
+- Long marketing task titles no longer push the button off-screen
+- No layout or spacing changes to the card itself
