@@ -1,113 +1,99 @@
 
 
-## Plan: Consistent Phase Library for AI Task Generation
+## Plan: Two-Level Phase Navigation for Tasks
 
 ### The Problem
 
-If AI freely generates phase names, you'll get inconsistency across projects ("Social Media" vs "Social" vs "Social Posts"). This makes filtering, reporting, and navigation unreliable.
+With phases spanning Web Development, Marketing, and General domains, the tab bar can show 10+ tabs that get cut off, especially on mobile. You can't see or access all phases.
 
-### The Solution: A Fixed Phase Library
+### The Solution: Domain Filter + Phase Tabs
 
-Define a master list of allowed phases organized by domain. The AI **must** pick from this list -- it cannot invent new phase names. This keeps every project consistent while supporting multiple service areas.
+Add a simple domain selector row above the phase tabs. Only phases for the selected domain are shown as tabs, keeping the bar to 3-6 items max.
 
-### Phase Library
+```text
+[Web Development]  [Marketing]  [General]     <-- domain selector (compact toggle group)
+[Discovery] [Design] [Development] ...         <-- phase tabs (filtered to selected domain)
+```
 
-| Domain | Phases |
-|--------|--------|
-| Web Development | discovery, design, development, review, published |
-| Marketing | content_strategy, content_creation, social_media, email_marketing, paid_ads, analytics |
-| General | planning, research, operations, reporting |
-
-Each phase gets a human-readable label (e.g., `content_creation` displays as "Content Creation").
+- The domain selector only shows domains that have tasks (no empty categories)
+- Defaults to the domain containing the most tasks
+- Phase tabs remain exactly as they are today, just filtered
+- Mobile-friendly: domain buttons are small, phase tabs stay short
 
 ### Changes Required
 
-**1. Create `src/types/phases.ts`** -- Single source of truth for all phases
+**1. Update `src/components/tasks/TaskList.tsx`**
 
-Define the complete phase library with labels and display order. Includes:
-- `ALL_PHASES` array with id, label, and domain
-- `WEB_DEV_PHASES` and `MARKETING_PHASES` subsets for convenience
-- `getPhaseLabel(phase)` helper function
-- A formatted string for injection into AI prompts
+- Group active phases by domain using the phase library
+- Add a `domainFilter` state (defaults to whichever domain has the most tasks)
+- Render a row of small toggle buttons for each domain that has tasks (e.g., "Web Dev", "Marketing", "General")
+- Filter the phase tabs to only show phases from the selected domain
+- Show task counts per domain on the toggle buttons (e.g., "Marketing (12)")
+- Keep all existing functionality (action buttons, stats, task cards) unchanged
 
-**2. Update `supabase/functions/generate-tasks/index.ts`**
+**2. Update `src/components/tasks/ClientTaskList.tsx`**
 
-- For custom prompt mode: include the full phase library in the system prompt with the instruction "You MUST only use phases from this list. Do not invent new phase names."
-- For questionnaire mode: keep existing behavior (web dev phases only)
-- Validate AI output: if a returned phase isn't in the library, map it to the closest match or default to "planning"
+- Same domain grouping logic for the client portal view
+- Group the scrollable phase sections under domain headers
+- Each domain header shows its name and overall progress (e.g., "Marketing -- 4/12 tasks")
+- Collapsible domain sections so clients can focus on one area
 
-**3. Update `src/components/tasks/TaskList.tsx`**
+**3. Update `src/types/phases.ts`**
 
-- Replace the hardcoded `phases` array with dynamic logic:
-  - Scan the project's tasks to find which phases are actually used
-  - Order them using the phase library's defined order
-  - Only show tabs for phases that have tasks (no empty tabs cluttering the UI)
+- Add a helper function `groupPhasesByDomain(phases)` that returns phases organized by domain
+- Add domain labels map: `{ web_dev: "Web Development", marketing: "Marketing", general: "General" }`
 
-**4. Update `src/components/tasks/GenerateFromPromptDialog.tsx`**
+### Visual Layout (Admin TaskList)
 
-- Remove the single phase selector
-- The AI determines the right phases from the content, constrained to the phase library
-- Simpler UX: just paste and generate
-
-**5. Update `src/components/tasks/TaskEditDialog.tsx`**
-
-- Phase dropdown shows: standard web dev phases + any custom phases already used in the project
-- Uses labels from the phase library
-
-**6. Update `src/components/tasks/TaskCreateDialog.tsx`**
-
-- Same dynamic phase dropdown as edit dialog
-
-**7. Update `src/components/tasks/ClientTaskList.tsx`** (client portal)
-
-- Same dynamic tab logic as admin TaskList
-
-### How the AI Prompt Works
-
-The system prompt for custom prompt mode will include:
-
-```
-You MUST assign each task to one of these phases only:
-- content_strategy: Planning content pillars, calendars, themes
-- content_creation: Writing blogs, articles, long-form content
-- social_media: Social posts, reels, carousels, community management
-- email_marketing: Newsletters, drip campaigns, automations
-- paid_ads: Ad creation, targeting, budget management
-- analytics: Tracking, reporting, performance review
-- planning: General project planning and coordination
-- research: Market research, competitor analysis
-- operations: Process setup, tooling, workflows
-- reporting: Status reports, client updates, summaries
-
-Do NOT invent new phase names. Pick the closest match from this list.
+```text
++--------------------------------------------------+
+| [Regenerate] [Add Task] [From Prompt] [Checklist] |
+|                              8 of 24 completed    |
++--------------------------------------------------+
+| Web Dev (12)  |  Marketing (8)  |  General (4)    |  <-- domain toggles
++--------------------------------------------------+
+| [Content Strategy] [Content Creation] [Social..] |  <-- phase tabs (filtered)
++--------------------------------------------------+
+| Task cards for selected phase...                  |
++--------------------------------------------------+
 ```
 
-For questionnaire-based generation, the prompt stays unchanged (web dev phases only).
+### Visual Layout (Client TaskList)
 
-### Validation in the Edge Function
+The client view already uses a scrollable list with phase sections rather than tabs, so the change is lighter:
 
-After the AI returns tasks, validate each phase:
-1. Check if the phase is in the allowed list
-2. If not, attempt a fuzzy match (e.g., "Social" maps to "social_media")
-3. If no match, default to "planning"
+- Add domain header dividers between groups of phases
+- e.g., "--- Web Development ---" then Discovery, Design sections, then "--- Marketing ---" then Content Strategy, Social Media sections
 
-This ensures the database always contains clean, consistent phase values.
+### Technical Details
 
-### Files to Create/Modify
+**New helper in `src/types/phases.ts`:**
 
-| File | Action |
+```
+DOMAIN_LABELS = { web_dev: "Web Dev", marketing: "Marketing", general: "General" }
+
+groupPhasesByDomain(phases: PhaseDefinition[]):
+  -> Record<string, PhaseDefinition[]>
+  Groups the provided phases by their domain property
+```
+
+**State management in TaskList:**
+
+- `domainFilter`: which domain is currently selected
+- Auto-selects the domain with the most tasks on initial render
+- When switching domains, auto-selects the first phase tab in that domain
+
+### Files to Modify
+
+| File | Change |
 |------|--------|
-| `src/types/phases.ts` | **Create** -- Phase library with labels, domains, ordering |
-| `supabase/functions/generate-tasks/index.ts` | Update custom prompt system message + add phase validation |
-| `src/components/tasks/TaskList.tsx` | Dynamic tabs from task data using phase library |
-| `src/components/tasks/GenerateFromPromptDialog.tsx` | Remove phase selector |
-| `src/components/tasks/TaskEditDialog.tsx` | Dynamic phase dropdown from library |
-| `src/components/tasks/TaskCreateDialog.tsx` | Dynamic phase dropdown from library |
-| `src/components/tasks/ClientTaskList.tsx` | Dynamic tabs matching admin view |
+| `src/types/phases.ts` | Add `DOMAIN_LABELS` and `groupPhasesByDomain` helper |
+| `src/components/tasks/TaskList.tsx` | Add domain toggle row, filter phase tabs by domain |
+| `src/components/tasks/ClientTaskList.tsx` | Add domain headers between phase groups |
 
 ### What Stays the Same
 
-- Questionnaire-based generation still defaults to the 5 web dev phases
-- Project pipeline status (Discovery through Published) is unchanged -- that's the project lifecycle, separate from task phases
-- Database schema unchanged (`phase` is already `text`)
-- Existing tasks with web dev phases continue to work as-is
+- All action buttons (Regenerate, Add Task, From Prompt, Checklist)
+- Task cards, status changes, edit/delete
+- Phase tab behavior (click to view tasks in that phase)
+- The phase library and AI generation logic
