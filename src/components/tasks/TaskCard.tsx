@@ -45,7 +45,7 @@ export function TaskCard({ task, onStatusChange, onEdit, onDelete }: TaskCardPro
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <h4 className={cn(
-              'font-medium text-sm leading-tight',
+              'font-medium text-sm leading-tight min-w-0 break-words',
               isCompleted && 'line-through text-muted-foreground'
             )}>
               {task.title}
