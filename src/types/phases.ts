@@ -96,6 +96,25 @@ export function getAvailablePhasesForDropdown(tasks: { phase: string }[]): Phase
   return result.sort((a, b) => a.order - b.order);
 }
 
+/** Domain display labels */
+export const DOMAIN_LABELS: Record<string, string> = {
+  web_dev: 'Web Dev',
+  marketing: 'Marketing',
+  general: 'General',
+};
+
+/** Group phases by their domain */
+export function groupPhasesByDomain(
+  phases: PhaseDefinition[]
+): Record<string, PhaseDefinition[]> {
+  const result: Record<string, PhaseDefinition[]> = {};
+  for (const phase of phases) {
+    if (!result[phase.domain]) result[phase.domain] = [];
+    result[phase.domain].push(phase);
+  }
+  return result;
+}
+
 /** Formatted phase list for injection into AI prompts */
 export const PHASE_LIBRARY_PROMPT = `You MUST assign each task to one of these phases only:
 - content_strategy: Planning content pillars, calendars, themes
