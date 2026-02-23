@@ -32,7 +32,7 @@ export function TaskCard({ task, onStatusChange, onEdit, onDelete }: TaskCardPro
 
   return (
     <div className={cn(
-      'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30',
+      'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30 overflow-hidden',
       isCompleted && 'opacity-60'
     )}>
       <div className="flex items-start gap-3">
