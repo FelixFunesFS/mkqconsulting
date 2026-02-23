@@ -3,7 +3,7 @@ import { Task, TaskStatus } from '@/types/task';
 import { TaskCard } from './TaskCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { statusLabels as phaseLabels } from '@/types/project';
+import { getPhaseLabel, getActivePhases, WEB_DEV_PHASES } from '@/types/phases';
 import { Plus, Sparkles, Loader2, ClipboardCheck, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTaskTemplates, useApplyTemplates } from '@/hooks/useTaskTemplates';
@@ -22,7 +22,7 @@ interface TaskListProps {
   onGenerateFromPrompt?: () => void;
 }
 
-const phases = ['discovery', 'design', 'development', 'review', 'published'] as const;
+const defaultPhases = WEB_DEV_PHASES;
 
 export function TaskList({
   tasks,
@@ -36,12 +36,19 @@ export function TaskList({
   onAddTask,
   onGenerateFromPrompt,
 }: TaskListProps) {
-  const [activePhase, setActivePhase] = useState<string>(projectPhase);
   const { data: templates } = useTaskTemplates();
   const applyTemplates = useApplyTemplates();
 
+  // Compute dynamic phases from tasks, falling back to web dev phases if no tasks
+  const dynamicPhases = tasks.length > 0 ? getActivePhases(tasks) : defaultPhases;
+  const phases = dynamicPhases.length > 0 ? dynamicPhases : defaultPhases;
+
+  const [activePhase, setActivePhase] = useState<string>(
+    phases.some((p) => p.id === projectPhase) ? projectPhase : phases[0]?.id ?? 'discovery'
+  );
+
   const tasksByPhase = phases.reduce((acc, phase) => {
-    acc[phase] = tasks.filter((t) => t.phase === phase);
+    acc[phase.id] = tasks.filter((t) => t.phase === phase.id);
     return acc;
   }, {} as Record<string, Task[]>);
 
@@ -172,17 +179,17 @@ export function TaskList({
       <Tabs value={activePhase} onValueChange={setActivePhase}>
         <TabsList className="w-full justify-start overflow-x-auto">
           {phases.map((phase) => {
-            const stats = getPhaseStats(phase);
+            const stats = getPhaseStats(phase.id);
             return (
               <TabsTrigger
-                key={phase}
-                value={phase}
+                key={phase.id}
+                value={phase.id}
                 className={cn(
                   'relative',
-                  phase === projectPhase && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                  phase.id === projectPhase && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
                 )}
               >
-                {phaseLabels[phase]}
+                {phase.label}
                 {stats.total > 0 && (
                   <span className="ml-2 text-xs text-muted-foreground">
                     {stats.completed}/{stats.total}
@@ -194,14 +201,14 @@ export function TaskList({
         </TabsList>
 
         {phases.map((phase) => (
-          <TabsContent key={phase} value={phase} className="mt-4">
+          <TabsContent key={phase.id} value={phase.id} className="mt-4">
             {isGenerating ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : tasksByPhase[phase]?.length > 0 ? (
+            ) : tasksByPhase[phase.id]?.length > 0 ? (
               <div className="space-y-2">
-                {tasksByPhase[phase].map((task) => (
+                {tasksByPhase[phase.id].map((task) => (
                   <TaskCard
                     key={task.id}
                     task={task}

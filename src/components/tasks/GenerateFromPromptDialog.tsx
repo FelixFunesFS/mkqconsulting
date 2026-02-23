@@ -2,19 +2,14 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Loader2, Wand2 } from 'lucide-react';
-import { statusLabels as phaseLabels } from '@/types/project';
-
-const phases = ['discovery', 'design', 'development', 'review', 'published'] as const;
 
 interface GenerateFromPromptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGenerate: (prompt: string, phase: string) => void;
+  onGenerate: (prompt: string) => void;
   isGenerating: boolean;
-  defaultPhase?: string;
 }
 
 export function GenerateFromPromptDialog({
@@ -22,20 +17,17 @@ export function GenerateFromPromptDialog({
   onOpenChange,
   onGenerate,
   isGenerating,
-  defaultPhase = 'discovery',
 }: GenerateFromPromptDialogProps) {
   const [prompt, setPrompt] = useState('');
-  const [phase, setPhase] = useState(defaultPhase);
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
-    onGenerate(prompt.trim(), phase);
+    onGenerate(prompt.trim());
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen && !isGenerating) {
       setPrompt('');
-      setPhase(defaultPhase);
     }
     onOpenChange(nextOpen);
   };
@@ -67,24 +59,9 @@ export function GenerateFromPromptDialog({
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phase">Default phase for tasks</Label>
-            <Select value={phase} onValueChange={setPhase} disabled={isGenerating}>
-              <SelectTrigger id="phase">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {phases.map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {phaseLabels[p]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Tasks will be assigned to this phase unless the content suggests otherwise.
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            AI will automatically categorize tasks into the appropriate phases (e.g., Content Strategy, Social Media, Paid Ads, etc.)
+          </p>
         </div>
 
         <DialogFooter>

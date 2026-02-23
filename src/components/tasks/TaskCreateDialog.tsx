@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { statusLabels as phaseLabels } from '@/types/project';
+import { ALL_PHASES } from '@/types/phases';
 
 interface TaskCreateDialogProps {
   projectId: string;
@@ -27,7 +27,7 @@ interface TaskCreateDialogProps {
   }) => void;
 }
 
-const phases = ['discovery', 'design', 'development', 'review', 'published'] as const;
+const phases = ALL_PHASES;
 const priorities: TaskPriority[] = ['low', 'medium', 'high', 'critical'];
 
 export function TaskCreateDialog({ projectId, currentPhase, open, onOpenChange, onSave }: TaskCreateDialogProps) {
@@ -102,8 +102,8 @@ export function TaskCreateDialog({ projectId, currentPhase, open, onOpenChange, 
                 </SelectTrigger>
                 <SelectContent>
                   {phases.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {phaseLabels[p]}
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

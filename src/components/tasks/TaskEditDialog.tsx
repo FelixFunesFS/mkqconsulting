@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { statusLabels as phaseLabels } from '@/types/project';
+import { ALL_PHASES, getPhaseLabel } from '@/types/phases';
 
 interface TaskEditDialogProps {
   task: Task | null;
@@ -24,7 +24,7 @@ interface TaskEditDialogProps {
   }>) => void;
 }
 
-const phases = ['discovery', 'design', 'development', 'review', 'published'] as const;
+const phases = ALL_PHASES;
 const statuses: TaskStatus[] = ['pending', 'in_progress', 'completed', 'blocked'];
 const priorities: TaskPriority[] = ['low', 'medium', 'high', 'critical'];
 
@@ -105,8 +105,8 @@ export function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDia
                 </SelectTrigger>
                 <SelectContent>
                   {phases.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {phaseLabels[p]}
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
