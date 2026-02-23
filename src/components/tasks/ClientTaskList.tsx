@@ -1,7 +1,8 @@
 import { Task } from '@/types/task';
-import { getPhaseLabel, getActivePhases, WEB_DEV_PHASES } from '@/types/phases';
+import { getPhaseLabel, getActivePhases, WEB_DEV_PHASES, DOMAIN_LABELS, groupPhasesByDomain } from '@/types/phases';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 import { 
@@ -10,7 +11,8 @@ import {
   Clock, 
   AlertCircle, 
   Loader2,
-  ListTodo
+  ListTodo,
+  ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -124,6 +126,10 @@ export function ClientTaskList({ tasks, projectId, isLoading, maxHeight = '500px
     return acc;
   }, {} as Record<string, Task[]>);
 
+  // Group phases by domain
+  const domainGroups = groupPhasesByDomain(dynamicPhases);
+  const activeDomains = Object.keys(domainGroups);
+
   // Calculate overall progress
   const totalCompleted = tasks.filter(t => t.status === 'completed').length;
   const overallProgress = Math.round((totalCompleted / tasks.length) * 100);
@@ -152,17 +158,45 @@ export function ClientTaskList({ tasks, projectId, isLoading, maxHeight = '500px
         </div>
       </div>
 
-      {/* Tasks by phase - Scrollable */}
+      {/* Tasks by domain + phase - Scrollable */}
       <div 
         className="flex-1 min-h-0 overflow-hidden"
         style={maxHeight === '100%' ? undefined : { maxHeight }}
       >
         <ScrollArea className="h-full">
           <div className="space-y-6 pr-4">
-            {dynamicPhases.map(phase => {
-              const phaseTasks = tasksByPhase[phase.id];
-              if (!phaseTasks) return null;
-              return <PhaseSection key={phase.id} phase={phase.id} tasks={phaseTasks} />;
+            {activeDomains.map((domain) => {
+              const domainPhases = domainGroups[domain];
+              const domainTasks = tasks.filter(t => domainPhases.some(p => p.id === t.phase));
+              const domainCompleted = domainTasks.filter(t => t.status === 'completed').length;
+
+              // Only show domain header if multiple domains exist
+              const showDomainHeader = activeDomains.length > 1;
+
+              return (
+                <Collapsible key={domain} defaultOpen>
+                  {showDomainHeader && (
+                    <CollapsibleTrigger className="flex items-center justify-between w-full py-2 px-1 group">
+                      <div className="flex items-center gap-2">
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90" />
+                        <h3 className="text-sm font-semibold">{DOMAIN_LABELS[domain] ?? domain}</h3>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {domainCompleted}/{domainTasks.length} tasks
+                      </span>
+                    </CollapsibleTrigger>
+                  )}
+                  <CollapsibleContent>
+                    <div className={cn("space-y-6", showDomainHeader && "pl-2")}>
+                      {domainPhases.map(phase => {
+                        const phaseTasks = tasksByPhase[phase.id];
+                        if (!phaseTasks) return null;
+                        return <PhaseSection key={phase.id} phase={phase.id} tasks={phaseTasks} />;
+                      })}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
             })}
           </div>
         </ScrollArea>

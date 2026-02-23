@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Task, TaskStatus } from '@/types/task';
 import { TaskCard } from './TaskCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getPhaseLabel, getActivePhases, WEB_DEV_PHASES } from '@/types/phases';
+import { getActivePhases, WEB_DEV_PHASES, DOMAIN_LABELS, groupPhasesByDomain } from '@/types/phases';
 import { Plus, Sparkles, Loader2, ClipboardCheck, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTaskTemplates, useApplyTemplates } from '@/hooks/useTaskTemplates';
 import { toast } from 'sonner';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface TaskListProps {
   tasks: Task[];
@@ -43,9 +44,52 @@ export function TaskList({
   const dynamicPhases = tasks.length > 0 ? getActivePhases(tasks) : defaultPhases;
   const phases = dynamicPhases.length > 0 ? dynamicPhases : defaultPhases;
 
-  const [activePhase, setActivePhase] = useState<string>(
-    phases.some((p) => p.id === projectPhase) ? projectPhase : phases[0]?.id ?? 'discovery'
+  // Group phases by domain and compute domain task counts
+  const domainGroups = useMemo(() => groupPhasesByDomain(phases), [phases]);
+  const activeDomains = useMemo(() => Object.keys(domainGroups), [domainGroups]);
+
+  const domainTaskCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const [domain, domainPhases] of Object.entries(domainGroups)) {
+      counts[domain] = tasks.filter(t => domainPhases.some(p => p.id === t.phase)).length;
+    }
+    return counts;
+  }, [domainGroups, tasks]);
+
+  // Default domain: the one with most tasks
+  const defaultDomain = useMemo(() => {
+    let best = activeDomains[0] ?? 'web_dev';
+    let bestCount = 0;
+    for (const d of activeDomains) {
+      if ((domainTaskCounts[d] ?? 0) > bestCount) {
+        bestCount = domainTaskCounts[d];
+        best = d;
+      }
+    }
+    return best;
+  }, [activeDomains, domainTaskCounts]);
+
+  const [domainFilter, setDomainFilter] = useState<string>(defaultDomain);
+  
+  // Filtered phases for the selected domain
+  const filteredPhases = useMemo(
+    () => domainGroups[domainFilter] ?? phases,
+    [domainGroups, domainFilter, phases]
   );
+
+  const [activePhase, setActivePhase] = useState<string>(
+    filteredPhases.some((p) => p.id === projectPhase) ? projectPhase : filteredPhases[0]?.id ?? 'discovery'
+  );
+
+  // When domain changes, auto-select first phase in that domain
+  const handleDomainChange = (value: string) => {
+    if (!value) return;
+    setDomainFilter(value);
+    const newPhases = domainGroups[value] ?? [];
+    if (newPhases.length > 0 && !newPhases.some(p => p.id === activePhase)) {
+      setActivePhase(newPhases[0].id);
+    }
+  };
 
   const tasksByPhase = phases.reduce((acc, phase) => {
     acc[phase.id] = tasks.filter((t) => t.phase === phase.id);
@@ -70,7 +114,6 @@ export function TaskList({
         onSuccess: (result) => {
           if (result.added > 0) {
             toast.success(`Added ${result.added} pre-launch checklist items`);
-            // Switch to review tab to show the new tasks
             setActivePhase('review');
           } else {
             toast.info('All checklist items already exist');
@@ -176,9 +219,34 @@ export function TaskList({
         </p>
       </div>
 
+      {/* Domain filter - only show if more than one domain has tasks */}
+      {activeDomains.length > 1 && (
+        <ToggleGroup
+          type="single"
+          value={domainFilter}
+          onValueChange={handleDomainChange}
+          variant="outline"
+          size="sm"
+          className="justify-start gap-1"
+        >
+          {activeDomains.map((domain) => (
+            <ToggleGroupItem
+              key={domain}
+              value={domain}
+              className="text-xs px-3"
+            >
+              {DOMAIN_LABELS[domain] ?? domain}
+              <span className="ml-1.5 text-muted-foreground">
+                ({domainTaskCounts[domain] ?? 0})
+              </span>
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      )}
+
       <Tabs value={activePhase} onValueChange={setActivePhase}>
         <TabsList className="w-full justify-start overflow-x-auto">
-          {phases.map((phase) => {
+          {filteredPhases.map((phase) => {
             const stats = getPhaseStats(phase.id);
             return (
               <TabsTrigger
@@ -200,7 +268,7 @@ export function TaskList({
           })}
         </TabsList>
 
-        {phases.map((phase) => (
+        {filteredPhases.map((phase) => (
           <TabsContent key={phase.id} value={phase.id} className="mt-4">
             {isGenerating ? (
               <div className="flex items-center justify-center py-12">
