@@ -1,38 +1,102 @@
 
 
-## Final Fix: Task Card Cropping (For Real This Time)
+## Assessment: Multiple Clients Per Project
 
-### Why the last 5 fixes didn't work
+### Current State
 
-Looking at the actual code, **the root cause fix was never applied**. Every conversation discussed it, planned it, but only the TaskCard changes were saved. The scroll-area.tsx file is completely untouched -- it's identical to the default shadcn/ui component.
+**Database Layer: ✅ READY**
+- `project_clients` junction table exists with data
+- `user_has_project_access()` function works correctly
+- RLS policies updated across all related tables (activities, tasks, comments, documents, questionnaires)
 
-The critical issue: Radix UI's ScrollArea Viewport injects an internal div with `display: table` inline style. In table layout, content expands to fit text instead of being constrained by container width. This overrides every flex-based fix applied to TaskCard (`min-w-0`, `break-words`, `shrink-0`).
+**Application Layer: ❌ INCOMPLETE**
+- Frontend code still uses single-client model (`project.clientId`)
+- Missing hooks to interact with `project_clients` table
+- Missing UI component to assign multiple clients
+- All dialogs/components reference the deprecated `projects.client_id` column
 
-### The Fix (2 files, 2 lines each)
+### The Gap
 
-**File 1: `src/components/ui/scroll-area.tsx` (line 11) -- THE CRITICAL FIX**
+The database migration was completed, but the UI layer was never updated. This means:
 
-Override the Radix-injected `display: table` on the internal wrapper div:
+1. **Data Mismatch**: Junction table has relationships, but UI reads from `projects.client_id`
+2. **Broken Assignment**: Can't assign multiple clients through the UI
+3. **Inconsistent Display**: Components show single client even when multiple are assigned
 
-- Before: `className="h-full w-full rounded-[inherit]"`
-- After: `className="h-full w-full rounded-[inherit] [&>div]:!block"`
+### What's Needed
 
-This single change makes all the existing TaskCard fixes (min-w-0, break-words, shrink-0) actually work.
+**Core Infrastructure (Missing):**
 
-**File 2: `src/components/tasks/TaskCard.tsx` (line 35) -- SAFETY NET**
+1. **`src/hooks/useProjectClients.ts`**: Hooks to manage many-to-many relationships
+   - `useProjectClients(projectId)` - get all clients for a project
+   - `useClientProjects(clientId)` - get all projects for a client  
+   - `useSyncProjectClients(projectId, clientIds[])` - assign multiple clients atomically
 
-Add `overflow-hidden` to the card root as defense-in-depth:
+2. **`src/components/projects/MultiClientSelector.tsx`**: Multi-select UI component
+   - Popover with checkboxes for all available clients
+   - Shows currently selected clients as badges
+   - Handles add/remove operations
 
-- Before: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30'`
-- After: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30 overflow-hidden'`
+**Component Updates Required:**
 
-The DropdownMenu uses a portal so it renders outside this div and won't be clipped.
+3. **`ProjectEditDialog.tsx`** (line 137-143): Replace `ClientSelector` with `MultiClientSelector`
+4. **`ClientProjectsDialog.tsx`**: Query junction table instead of `project.clientId`
+5. **`ProjectTasksDialog.tsx`** (line 33-34): Handle multiple clients when showing client info
+6. **`AdminClients.tsx`**: Update project assignment logic to use junction table
+7. **`src/lib/notifications.ts`**: Already updated to query junction table ✅
 
-### How to verify it worked
+**Type System Updates:**
 
-After implementation, open a project with Marketing tasks (long titles). The three-dot menu button should be fully visible on every card, and long titles should wrap to a second line instead of pushing content off-screen.
+8. **`src/types/project.ts`**: 
+   - Keep `clientId?: string` for backward compatibility (deprecated)
+   - Add `clientIds?: string[]` for new multi-client model
+   - Mark in JSDoc that `clientId` is deprecated
 
-### Why it will work this time
+9. **`src/hooks/useProjects.ts`**:
+   - Update `mapDbToProject` to optionally fetch client IDs from junction table
+   - Keep writing to `client_id` column for now (backward compatibility)
 
-The existing TaskCard fixes are correct -- they just need the scroll area to use block layout instead of table layout. With `display: block`, the container constrains its children to its width, allowing `min-w-0` to let the title shrink and `break-words` to wrap the text. This is standard CSS behavior.
+### Migration Strategy
+
+**Phase 1: Build Infrastructure**
+- Create `useProjectClients` hook with all CRUD operations
+- Create `MultiClientSelector` component with proper UX
+
+**Phase 2: Update Assignment Flows**
+- Replace single-client selectors with multi-client versions
+- Update dialogs to show multiple clients as badges/lists
+
+**Phase 3: Update Display & Filtering**
+- Components that show "the client" need to handle multiple clients
+- Update permission checks to use junction table
+
+**Phase 4: Data Cleanup (Optional)**
+- Deprecate `projects.client_id` column once all code uses junction table
+- Add database constraint to prevent direct writes to `client_id`
+
+### Technical Considerations
+
+**Backward Compatibility:**
+- Keep `projects.client_id` populated with "primary" client for now
+- This prevents breaking existing queries/reports that depend on it
+- Once all code migrated, can remove the column
+
+**Permission Model:**
+- RLS already checks junction table via `user_has_project_access()` ✅
+- No additional security changes needed
+
+**UX Design:**
+- When multiple clients assigned, which email gets notifications? (currently sends to first match)
+- Should there be a "primary client" concept for billing/communication?
+- How to display multiple clients in project cards (badges? "+2 more"?)
+
+### Answer to Your Question
+
+**Can multiple people be added to a project?**
+
+**Database: YES** - The junction table supports it fully.
+
+**UI: NO** - The interface still only allows assigning one client at a time. The UI components were never updated to use the many-to-many relationship.
+
+**To make it work:** Need to create the missing hooks and components listed above, then update all dialogs/pages that handle client assignment.
 
