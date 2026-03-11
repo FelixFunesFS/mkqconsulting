@@ -19,7 +19,7 @@ interface TaskListProps {
   onEdit?: (task: Task) => void;
   onDelete?: (taskId: string) => void;
   onGenerateTasks?: () => void;
-  onAddTask?: () => void;
+  onAddTask?: (activePhase?: string) => void;
   onGenerateFromPrompt?: () => void;
 }
 
