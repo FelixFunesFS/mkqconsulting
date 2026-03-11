@@ -31,8 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ClientSelector } from './ClientSelector';
+import { MultiClientSelector } from './MultiClientSelector';
 import { RevenueManager } from './RevenueManager';
+import { useProjectClients, useSyncProjectClients } from '@/hooks/useProjectClients';
 
 interface ProjectEditDialogProps {
   project: Project | null;
