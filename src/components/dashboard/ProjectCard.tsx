@@ -145,29 +145,27 @@ export function ProjectCard({
             <DropdownMenuSub>
               <DropdownMenuSubTrigger onClick={(e) => e.stopPropagation()}>
                 <UserPlus className="mr-2 h-4 w-4" />
-                Assign Client
+                Manage Clients
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                <DropdownMenuItem 
-                  onClick={(e) => { e.stopPropagation(); handleAssignClient(null); }}
-                  className={!project.clientId ? 'bg-accent' : ''}
-                >
-                  <span className="text-muted-foreground">No client</span>
-                </DropdownMenuItem>
-                {clients?.map((client) => (
-                  <DropdownMenuItem
-                    key={client.id}
-                    onClick={(e) => { e.stopPropagation(); handleAssignClient(client.id); }}
-                    className={project.clientId === client.id ? 'bg-accent' : ''}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                        {client.name.charAt(0).toUpperCase()}
+                {clients?.map((client) => {
+                  const isAssigned = projectClients?.some(pc => pc.clientId === client.id);
+                  return (
+                    <DropdownMenuItem
+                      key={client.id}
+                      onClick={(e) => { e.stopPropagation(); handleToggleClient(client.id); }}
+                      className={isAssigned ? 'bg-accent' : ''}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Check className={cn('h-4 w-4', isAssigned ? 'opacity-100' : 'opacity-0')} />
+                        <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                          {client.name.charAt(0).toUpperCase()}
+                        </div>
+                        {client.name}
                       </div>
-                      {client.name}
-                    </div>
-                  </DropdownMenuItem>
-                ))}
+                    </DropdownMenuItem>
+                  );
+                })}
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuSeparator />
