@@ -1,38 +1,34 @@
 
 
-## Final Fix: Task Card Cropping (For Real This Time)
+## Add Show/Hide Password Toggle to Auth Forms
 
-### Why the last 5 fixes didn't work
+Add an eye icon toggle to password fields in `LoginForm`, `SignupForm`, and `ResetPassword` so users can reveal their password.
 
-Looking at the actual code, **the root cause fix was never applied**. Every conversation discussed it, planned it, but only the TaskCard changes were saved. The scroll-area.tsx file is completely untouched -- it's identical to the default shadcn/ui component.
+### Changes
 
-The critical issue: Radix UI's ScrollArea Viewport injects an internal div with `display: table` inline style. In table layout, content expands to fit text instead of being constrained by container width. This overrides every flex-based fix applied to TaskCard (`min-w-0`, `break-words`, `shrink-0`).
+**1. `src/components/auth/LoginForm.tsx`**
+- Add `showPassword` state
+- Change input type to `showPassword ? "text" : "password"`
+- Wrap input in a `relative` div, add an `Eye`/`EyeOff` icon button inside
 
-### The Fix (2 files, 2 lines each)
+**2. `src/components/auth/SignupForm.tsx`**
+- Same pattern for the password field
 
-**File 1: `src/components/ui/scroll-area.tsx` (line 11) -- THE CRITICAL FIX**
+**3. `src/pages/ResetPassword.tsx`**
+- Same pattern for both password and confirm password fields
 
-Override the Radix-injected `display: table` on the internal wrapper div:
+### Implementation Pattern
+```tsx
+const [showPassword, setShowPassword] = useState(false);
 
-- Before: `className="h-full w-full rounded-[inherit]"`
-- After: `className="h-full w-full rounded-[inherit] [&>div]:!block"`
+<div className="relative">
+  <Input type={showPassword ? "text" : "password"} ... className="pr-10" />
+  <button type="button" onClick={() => setShowPassword(!showPassword)}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+  </button>
+</div>
+```
 
-This single change makes all the existing TaskCard fixes (min-w-0, break-words, shrink-0) actually work.
-
-**File 2: `src/components/tasks/TaskCard.tsx` (line 35) -- SAFETY NET**
-
-Add `overflow-hidden` to the card root as defense-in-depth:
-
-- Before: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30'`
-- After: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30 overflow-hidden'`
-
-The DropdownMenu uses a portal so it renders outside this div and won't be clipped.
-
-### How to verify it worked
-
-After implementation, open a project with Marketing tasks (long titles). The three-dot menu button should be fully visible on every card, and long titles should wrap to a second line instead of pushing content off-screen.
-
-### Why it will work this time
-
-The existing TaskCard fixes are correct -- they just need the scroll area to use block layout instead of table layout. With `display: block`, the container constrains its children to its width, allowing `min-w-0` to let the title shrink and `break-words` to wrap the text. This is standard CSS behavior.
+No database or backend changes needed.
 
