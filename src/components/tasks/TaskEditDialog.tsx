@@ -24,7 +24,8 @@ interface TaskEditDialogProps {
   }>) => void;
 }
 
-const phases = ALL_PHASES;
+const groupedPhases = groupPhasesByDomain(ALL_PHASES);
+const domainOrder = ['web_dev', 'marketing', 'general'];
 const statuses: TaskStatus[] = ['pending', 'in_progress', 'completed', 'blocked'];
 const priorities: TaskPriority[] = ['low', 'medium', 'high', 'critical'];
 
