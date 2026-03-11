@@ -134,7 +134,10 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
     }
   };
 
-  const handleAddTask = () => {
+  const [createPhase, setCreatePhase] = useState<string>(project?.status ?? 'discovery');
+
+  const handleAddTask = (activePhase?: string) => {
+    if (activePhase) setCreatePhase(activePhase);
     setShowCreateDialog(true);
   };
 
