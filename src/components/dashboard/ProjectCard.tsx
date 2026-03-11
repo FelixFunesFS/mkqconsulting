@@ -76,25 +76,19 @@ export function ProjectCard({
     });
   };
 
-  const handleAssignClient = async (clientId: string | null) => {
+  const handleToggleClient = async (clientId: string) => {
+    const isAssigned = projectClients?.some(pc => pc.clientId === clientId);
     try {
-      await updateProject.mutateAsync({
-        id: project.id,
-        clientId: clientId || undefined,
-      });
-      const clientName = clients?.find(c => c.id === clientId)?.name;
-      toast({
-        title: clientId ? 'Client assigned' : 'Client unassigned',
-        description: clientId 
-          ? `${clientName} can now access this project in their portal.`
-          : 'This project is no longer linked to a client.'
-      });
+      if (isAssigned) {
+        await removeProjectClient.mutateAsync({ projectId: project.id, clientId });
+        toast({ title: 'Client removed', description: 'Client access has been removed.' });
+      } else {
+        await addProjectClient.mutateAsync({ projectId: project.id, clientId });
+        const clientName = clients?.find(c => c.id === clientId)?.name;
+        toast({ title: 'Client added', description: `${clientName} can now access this project.` });
+      }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update client assignment',
-        variant: 'destructive'
-      });
+      toast({ title: 'Error', description: 'Failed to update client assignment', variant: 'destructive' });
     }
   };
 
