@@ -23,6 +23,7 @@ import {
 import { useClients } from '@/hooks/useClients';
 import { useUpdateProject } from '@/hooks/useProjects';
 import { useProjectRevenues } from '@/hooks/useProjectRevenues';
+import { useProjectClients, useAddProjectClient, useRemoveProjectClient } from '@/hooks/useProjectClients';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProjectCardProps {
