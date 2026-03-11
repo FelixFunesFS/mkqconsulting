@@ -107,11 +107,20 @@ export function ProjectCard({
           <Badge className={cn('text-xs font-medium', statusColors[project.status])}>
             {statusLabels[project.status]}
           </Badge>
-          {linkedClient && (
-            <Badge variant="outline" className="text-xs gap-1">
-              <User className="h-3 w-3" />
-              {linkedClient.name}
-            </Badge>
+          {linkedClients.length > 0 && (
+            <div className="flex items-center gap-1 flex-wrap">
+              {linkedClients.slice(0, 2).map((c) => (
+                <Badge key={c.id} variant="outline" className="text-xs gap-1">
+                  <User className="h-3 w-3" />
+                  {c.name}
+                </Badge>
+              ))}
+              {linkedClients.length > 2 && (
+                <Badge variant="outline" className="text-xs">
+                  +{linkedClients.length - 2}
+                </Badge>
+              )}
+            </div>
           )}
         </div>
         <DropdownMenu>
