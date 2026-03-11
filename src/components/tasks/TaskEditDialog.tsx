@@ -101,15 +101,26 @@ export function TaskEditDialog({ task, open, onOpenChange, onSave }: TaskEditDia
             <div className="space-y-2">
               <Label>Phase</Label>
               <Select value={phase} onValueChange={setPhase}>
-                <SelectTrigger>
+                <SelectTrigger className="border-primary/30 bg-primary/5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {phases.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
+                  {domainOrder.map((domain) => {
+                    const domainPhases = groupedPhases[domain];
+                    if (!domainPhases?.length) return null;
+                    return (
+                      <div key={domain}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                          {DOMAIN_LABELS[domain] ?? domain}
+                        </div>
+                        {domainPhases.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.label}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
