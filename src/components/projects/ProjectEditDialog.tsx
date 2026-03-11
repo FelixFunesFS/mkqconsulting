@@ -53,10 +53,13 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
   const updateProject = useUpdateProject();
   const { toast } = useToast();
 
+  const { data: projectClients } = useProjectClients(project?.id);
+  const syncClients = useSyncProjectClients();
+
   const [formData, setFormData] = useState({
     businessName: '',
     clientName: '',
-    clientId: null as string | null,
+    clientIds: [] as string[],
     status: 'discovery' as ProjectStatus,
     targetLaunchDate: null as Date | null,
     websiteUrl: '',
