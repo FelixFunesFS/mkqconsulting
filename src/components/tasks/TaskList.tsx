@@ -19,7 +19,7 @@ interface TaskListProps {
   onEdit?: (task: Task) => void;
   onDelete?: (taskId: string) => void;
   onGenerateTasks?: () => void;
-  onAddTask?: () => void;
+  onAddTask?: (activePhase?: string) => void;
   onGenerateFromPrompt?: () => void;
 }
 
@@ -147,7 +147,7 @@ export function TaskList({
             </Button>
           )}
           {onAddTask && (
-            <Button variant="outline" onClick={onAddTask}>
+            <Button variant="outline" onClick={() => onAddTask?.(activePhase)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Manually
             </Button>
@@ -189,7 +189,7 @@ export function TaskList({
             </Button>
           )}
           {onAddTask && (
-            <Button variant="outline" size="sm" onClick={onAddTask}>
+            <Button variant="outline" size="sm" onClick={() => onAddTask?.(activePhase)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
             </Button>

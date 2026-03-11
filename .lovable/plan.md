@@ -1,33 +1,38 @@
 
 
-## Problem
+## Final Fix: Task Card Cropping (For Real This Time)
 
-When you click "Add Task" in the task dialog, the phase defaults to the **project's pipeline status** (e.g. "Published" for Drake Fitness). Since you're adding tasks quickly without changing it, every task lands in the "Published" phase.
+### Why the last 5 fixes didn't work
 
-The root cause is in `ProjectTasksDialog.tsx` line 300:
-```tsx
-currentPhase={project.status}  // "published" for Drake Fitness
-```
+Looking at the actual code, **the root cause fix was never applied**. Every conversation discussed it, planned it, but only the TaskCard changes were saved. The scroll-area.tsx file is completely untouched -- it's identical to the default shadcn/ui component.
 
-This gets passed to `TaskCreateDialog` which uses it as the default phase selection.
+The critical issue: Radix UI's ScrollArea Viewport injects an internal div with `display: table` inline style. In table layout, content expands to fit text instead of being constrained by container width. This overrides every flex-based fix applied to TaskCard (`min-w-0`, `break-words`, `shrink-0`).
 
-## Fix
+### The Fix (2 files, 2 lines each)
 
-**1. Default to the currently viewed phase tab instead of project status**
+**File 1: `src/components/ui/scroll-area.tsx` (line 11) -- THE CRITICAL FIX**
 
-Pass the active phase tab from `TaskList` up to the create dialog, so new tasks default to whichever phase tab you're currently looking at. This is the most intuitive behavior — if you're on the "Design" tab and click "Add Task", the new task should default to "Design".
+Override the Radix-injected `display: table` on the internal wrapper div:
 
-**2. Group phases by domain in the create dialog dropdown**
+- Before: `className="h-full w-full rounded-[inherit]"`
+- After: `className="h-full w-full rounded-[inherit] [&>div]:!block"`
 
-The flat list of 16 phases is hard to scan. Group them with domain headers (Web Dev / Marketing / General) so it's clear which section you're picking.
+This single change makes all the existing TaskCard fixes (min-w-0, break-words, shrink-0) actually work.
 
-**3. Make the phase selector more visually prominent**
+**File 2: `src/components/tasks/TaskCard.tsx` (line 35) -- SAFETY NET**
 
-Move the Phase selector to full-width above the priority selector and add a subtle highlight/border so it's not easy to skip past.
+Add `overflow-hidden` to the card root as defense-in-depth:
 
-### Changes
+- Before: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30'`
+- After: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30 overflow-hidden'`
 
-- **`TaskList.tsx`**: Pass `activePhase` to the `onAddTask` callback so the parent knows which tab is active
-- **`ProjectTasksDialog.tsx`**: Receive the active phase from TaskList and pass it to TaskCreateDialog
-- **`TaskCreateDialog.tsx`**: Group phases by domain in the dropdown with section headers; make phase field full-width and more prominent
+The DropdownMenu uses a portal so it renders outside this div and won't be clipped.
+
+### How to verify it worked
+
+After implementation, open a project with Marketing tasks (long titles). The three-dot menu button should be fully visible on every card, and long titles should wrap to a second line instead of pushing content off-screen.
+
+### Why it will work this time
+
+The existing TaskCard fixes are correct -- they just need the scroll area to use block layout instead of table layout. With `display: block`, the container constrains its children to its width, allowing `min-w-0` to let the title shrink and `break-words` to wrap the text. This is standard CSS behavior.
 
