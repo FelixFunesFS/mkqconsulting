@@ -49,10 +49,13 @@ export function ProjectCard({
 }: ProjectCardProps) {
   const { data: clients } = useClients();
   const { data: revenues = [] } = useProjectRevenues(project.id);
+  const { data: projectClients } = useProjectClients(project.id);
+  const addProjectClient = useAddProjectClient();
+  const removeProjectClient = useRemoveProjectClient();
   const updateProject = useUpdateProject();
   const { toast } = useToast();
   
-  const linkedClient = clients?.find(c => c.id === project.clientId);
+  const linkedClients = clients?.filter(c => projectClients?.some(pc => pc.clientId === c.id)) ?? [];
   
   // Calculate revenue totals
   const activeMonthlyTotal = revenues
