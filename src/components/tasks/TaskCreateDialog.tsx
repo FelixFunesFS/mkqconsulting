@@ -27,7 +27,8 @@ interface TaskCreateDialogProps {
   }) => void;
 }
 
-const phases = ALL_PHASES;
+const groupedPhases = groupPhasesByDomain(ALL_PHASES);
+const domainOrder = ['web_dev', 'marketing', 'general'];
 const priorities: TaskPriority[] = ['low', 'medium', 'high', 'critical'];
 
 export function TaskCreateDialog({ projectId, currentPhase, open, onOpenChange, onSave }: TaskCreateDialogProps) {
