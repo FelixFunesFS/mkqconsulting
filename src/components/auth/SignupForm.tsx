@@ -28,6 +28,7 @@ interface SignupFormProps {
 export function SignupForm({ onSuccess, onError }: SignupFormProps) {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const { register, handleSubmit, formState: { errors } } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema)
