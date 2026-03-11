@@ -71,14 +71,14 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
       setFormData({
         businessName: project.businessName || '',
         clientName: project.clientName || '',
-        clientId: project.clientId || null,
+        clientIds: projectClients?.map((pc) => pc.clientId) ?? [],
         status: project.status,
         targetLaunchDate: project.targetLaunchDate ? new Date(project.targetLaunchDate) : null,
         websiteUrl: project.websiteUrl || '',
         notes: project.notes || '',
       });
     }
-  }, [project]);
+  }, [project, projectClients]);
 
   const handleSubmit = async () => {
     if (!project) return;
