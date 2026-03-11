@@ -329,6 +329,42 @@ export type Database = {
         }
         Relationships: []
       }
+      project_clients: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          project_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          project_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clients_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_documents: {
         Row: {
           category: Database["public"]["Enums"]["document_category"]
@@ -878,6 +914,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      user_has_project_access: {
+        Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
     }
