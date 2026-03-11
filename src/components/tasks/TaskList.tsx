@@ -189,7 +189,7 @@ export function TaskList({
             </Button>
           )}
           {onAddTask && (
-            <Button variant="outline" size="sm" onClick={onAddTask}>
+            <Button variant="outline" size="sm" onClick={() => onAddTask?.(activePhase)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Task
             </Button>
