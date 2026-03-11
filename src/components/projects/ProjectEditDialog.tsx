@@ -88,11 +88,17 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
         id: project.id,
         businessName: formData.businessName,
         clientName: formData.clientName,
-        clientId: formData.clientId || undefined,
+        clientId: formData.clientIds[0] || undefined,
         status: formData.status,
         targetLaunchDate: formData.targetLaunchDate?.toISOString().split('T')[0],
         websiteUrl: formData.websiteUrl || undefined,
         notes: formData.notes || undefined,
+      });
+
+      // Sync junction table
+      await syncClients.mutateAsync({
+        projectId: project.id,
+        clientIds: formData.clientIds,
       });
 
       toast({
