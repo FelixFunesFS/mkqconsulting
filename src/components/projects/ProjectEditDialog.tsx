@@ -145,10 +145,10 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
           </div>
 
           <div className="space-y-2">
-            <Label>Assign to Client</Label>
-            <ClientSelector
-              value={formData.clientId || undefined}
-              onSelect={(clientId) => setFormData({ ...formData, clientId })}
+            <Label>Assign to Clients</Label>
+            <MultiClientSelector
+              value={formData.clientIds}
+              onChange={(clientIds) => setFormData({ ...formData, clientIds })}
             />
           </div>
 
