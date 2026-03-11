@@ -94,23 +94,34 @@ export function TaskCreateDialog({ projectId, currentPhase, open, onOpenChange, 
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Phase</Label>
-              <Select value={phase} onValueChange={setPhase}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {phases.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label>Phase</Label>
+            <Select value={phase} onValueChange={setPhase}>
+              <SelectTrigger className="border-primary/30 bg-primary/5">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {domainOrder.map((domain) => {
+                  const domainPhases = groupedPhases[domain];
+                  if (!domainPhases?.length) return null;
+                  return (
+                    <div key={domain}>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                        {DOMAIN_LABELS[domain] ?? domain}
+                      </div>
+                      {domainPhases.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Priority</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>

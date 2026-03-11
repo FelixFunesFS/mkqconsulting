@@ -300,7 +300,7 @@ export function ProjectTasksDialog({ project, open, onOpenChange }: ProjectTasks
         <>
           <TaskCreateDialog
             projectId={project.id}
-            currentPhase={project.status}
+            currentPhase={createPhase}
             open={showCreateDialog}
             onOpenChange={setShowCreateDialog}
             onSave={handleCreateTask}
