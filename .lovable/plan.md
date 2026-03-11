@@ -1,47 +1,38 @@
 
 
-## Fix: David Drake Can't See Drake Fitness + Enable Multi-Client Access
+## Final Fix: Task Card Cropping (For Real This Time)
 
-### Root Cause
-David Drake's client record is properly linked to his user account, but he has **zero entries** in the `project_clients` junction table. RLS checks `user_has_project_access()` which queries `project_clients`, so he sees no projects.
+### Why the last 5 fixes didn't work
 
-### Current `project_clients` data:
-- Drake Fitness → M Funes only
-- Visions of Hope → Helen Harris
-- The Village House → Helen Harris
-- David Drake → **nothing**
+Looking at the actual code, **the root cause fix was never applied**. Every conversation discussed it, planned it, but only the TaskCard changes were saved. The scroll-area.tsx file is completely untouched -- it's identical to the default shadcn/ui component.
 
-### Plan
+The critical issue: Radix UI's ScrollArea Viewport injects an internal div with `display: table` inline style. In table layout, content expands to fit text instead of being constrained by container width. This overrides every flex-based fix applied to TaskCard (`min-w-0`, `break-words`, `shrink-0`).
 
-**Step 1: Data Fix**
-- Insert David Drake into `project_clients` for Drake Fitness (alongside M Funes who stays)
+### The Fix (2 files, 2 lines each)
 
-**Step 2: Create `src/hooks/useProjectClients.ts`**
-- `useProjectClients(projectId)` — fetch all clients for a project via junction table
-- `useClientProjects(clientId)` — fetch all projects for a client
-- `useSyncProjectClients()` — atomically replace client assignments (delete all + insert new)
-- Invalidates both `project-clients` and `projects` query keys
+**File 1: `src/components/ui/scroll-area.tsx` (line 11) -- THE CRITICAL FIX**
 
-**Step 3: Create `src/components/projects/MultiClientSelector.tsx`**
-- Popover with checkbox list of all clients
-- Selected clients shown as badges with remove buttons
-- Search/filter for client list
+Override the Radix-injected `display: table` on the internal wrapper div:
 
-**Step 4: Update `ProjectEditDialog.tsx`**
-- Replace single `ClientSelector` with `MultiClientSelector`
-- On save, call `useSyncProjectClients` with selected client IDs
-- Also keep writing to legacy `projects.client_id` (first selected client) for backward compat
+- Before: `className="h-full w-full rounded-[inherit]"`
+- After: `className="h-full w-full rounded-[inherit] [&>div]:!block"`
 
-**Step 5: Update `ClientProjectsDialog.tsx`**
-- Read assignments from `project_clients` junction table instead of `project.clientId`
-- Toggle adds/removes rows in junction table
+This single change makes all the existing TaskCard fixes (min-w-0, break-words, shrink-0) actually work.
 
-**Step 6: Update `ProjectCard.tsx` display**
-- Show multiple client badges where client name is displayed
-- Handle overflow with "+N more" pattern
+**File 2: `src/components/tasks/TaskCard.tsx` (line 35) -- SAFETY NET**
 
-### What stays the same
-- RLS policies — already use `user_has_project_access()` via junction table
-- `projects.client_id` column — kept for backward compatibility, written as "primary" client
-- Client dashboard (`ClientDashboard.tsx`) — already works since RLS handles filtering
+Add `overflow-hidden` to the card root as defense-in-depth:
+
+- Before: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30'`
+- After: `'group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30 overflow-hidden'`
+
+The DropdownMenu uses a portal so it renders outside this div and won't be clipped.
+
+### How to verify it worked
+
+After implementation, open a project with Marketing tasks (long titles). The three-dot menu button should be fully visible on every card, and long titles should wrap to a second line instead of pushing content off-screen.
+
+### Why it will work this time
+
+The existing TaskCard fixes are correct -- they just need the scroll area to use block layout instead of table layout. With `display: block`, the container constrains its children to its width, allowing `min-w-0` to let the title shrink and `break-words` to wrap the text. This is standard CSS behavior.
 

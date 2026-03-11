@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo, UserPlus, User, FileText, Clock } from 'lucide-react';
+import { Calendar, ExternalLink, MoreHorizontal, CheckCircle2, ListTodo, UserPlus, User, FileText, Clock, Check } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,7 @@ import {
 import { useClients } from '@/hooks/useClients';
 import { useUpdateProject } from '@/hooks/useProjects';
 import { useProjectRevenues } from '@/hooks/useProjectRevenues';
+import { useProjectClients, useAddProjectClient, useRemoveProjectClient } from '@/hooks/useProjectClients';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProjectCardProps {
@@ -48,10 +49,13 @@ export function ProjectCard({
 }: ProjectCardProps) {
   const { data: clients } = useClients();
   const { data: revenues = [] } = useProjectRevenues(project.id);
+  const { data: projectClients } = useProjectClients(project.id);
+  const addProjectClient = useAddProjectClient();
+  const removeProjectClient = useRemoveProjectClient();
   const updateProject = useUpdateProject();
   const { toast } = useToast();
   
-  const linkedClient = clients?.find(c => c.id === project.clientId);
+  const linkedClients = clients?.filter(c => projectClients?.some(pc => pc.clientId === c.id)) ?? [];
   
   // Calculate revenue totals
   const activeMonthlyTotal = revenues
@@ -72,25 +76,19 @@ export function ProjectCard({
     });
   };
 
-  const handleAssignClient = async (clientId: string | null) => {
+  const handleToggleClient = async (clientId: string) => {
+    const isAssigned = projectClients?.some(pc => pc.clientId === clientId);
     try {
-      await updateProject.mutateAsync({
-        id: project.id,
-        clientId: clientId || undefined,
-      });
-      const clientName = clients?.find(c => c.id === clientId)?.name;
-      toast({
-        title: clientId ? 'Client assigned' : 'Client unassigned',
-        description: clientId 
-          ? `${clientName} can now access this project in their portal.`
-          : 'This project is no longer linked to a client.'
-      });
+      if (isAssigned) {
+        await removeProjectClient.mutateAsync({ projectId: project.id, clientId });
+        toast({ title: 'Client removed', description: 'Client access has been removed.' });
+      } else {
+        await addProjectClient.mutateAsync({ projectId: project.id, clientId });
+        const clientName = clients?.find(c => c.id === clientId)?.name;
+        toast({ title: 'Client added', description: `${clientName} can now access this project.` });
+      }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update client assignment',
-        variant: 'destructive'
-      });
+      toast({ title: 'Error', description: 'Failed to update client assignment', variant: 'destructive' });
     }
   };
 
@@ -109,11 +107,20 @@ export function ProjectCard({
           <Badge className={cn('text-xs font-medium', statusColors[project.status])}>
             {statusLabels[project.status]}
           </Badge>
-          {linkedClient && (
-            <Badge variant="outline" className="text-xs gap-1">
-              <User className="h-3 w-3" />
-              {linkedClient.name}
-            </Badge>
+          {linkedClients.length > 0 && (
+            <div className="flex items-center gap-1 flex-wrap">
+              {linkedClients.slice(0, 2).map((c) => (
+                <Badge key={c.id} variant="outline" className="text-xs gap-1">
+                  <User className="h-3 w-3" />
+                  {c.name}
+                </Badge>
+              ))}
+              {linkedClients.length > 2 && (
+                <Badge variant="outline" className="text-xs">
+                  +{linkedClients.length - 2}
+                </Badge>
+              )}
+            </div>
           )}
         </div>
         <DropdownMenu>
@@ -138,29 +145,27 @@ export function ProjectCard({
             <DropdownMenuSub>
               <DropdownMenuSubTrigger onClick={(e) => e.stopPropagation()}>
                 <UserPlus className="mr-2 h-4 w-4" />
-                Assign Client
+                Manage Clients
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                <DropdownMenuItem 
-                  onClick={(e) => { e.stopPropagation(); handleAssignClient(null); }}
-                  className={!project.clientId ? 'bg-accent' : ''}
-                >
-                  <span className="text-muted-foreground">No client</span>
-                </DropdownMenuItem>
-                {clients?.map((client) => (
-                  <DropdownMenuItem
-                    key={client.id}
-                    onClick={(e) => { e.stopPropagation(); handleAssignClient(client.id); }}
-                    className={project.clientId === client.id ? 'bg-accent' : ''}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                        {client.name.charAt(0).toUpperCase()}
+                {clients?.map((client) => {
+                  const isAssigned = projectClients?.some(pc => pc.clientId === client.id);
+                  return (
+                    <DropdownMenuItem
+                      key={client.id}
+                      onClick={(e) => { e.stopPropagation(); handleToggleClient(client.id); }}
+                      className={isAssigned ? 'bg-accent' : ''}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Check className={cn('h-4 w-4', isAssigned ? 'opacity-100' : 'opacity-0')} />
+                        <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                          {client.name.charAt(0).toUpperCase()}
+                        </div>
+                        {client.name}
                       </div>
-                      {client.name}
-                    </div>
-                  </DropdownMenuItem>
-                ))}
+                    </DropdownMenuItem>
+                  );
+                })}
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuSeparator />

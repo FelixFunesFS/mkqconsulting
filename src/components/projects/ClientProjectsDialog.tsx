@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Client } from '@/hooks/useClients';
-import { useProjects, useUpdateProject } from '@/hooks/useProjects';
+import { useProjects } from '@/hooks/useProjects';
+import { useClientProjects, useAddProjectClient, useRemoveProjectClient } from '@/hooks/useProjectClients';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,24 +24,23 @@ interface ClientProjectsDialogProps {
 }
 
 export function ClientProjectsDialog({ client, open, onOpenChange }: ClientProjectsDialogProps) {
-  const { data: projects, isLoading } = useProjects();
-  const updateProject = useUpdateProject();
+  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: clientProjects, isLoading: clientProjectsLoading } = useClientProjects(client?.id);
+  const addProjectClient = useAddProjectClient();
+  const removeProjectClient = useRemoveProjectClient();
   const { toast } = useToast();
-  
+
   const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
 
-  // Initialize selected projects when client or projects change
+  const isLoading = projectsLoading || clientProjectsLoading;
+
+  // Initialize from junction table
   useEffect(() => {
-    if (client && projects) {
-      const clientProjectIds = new Set(
-        projects
-          .filter((p) => p.clientId === client.id)
-          .map((p) => p.id)
-      );
-      setSelectedProjectIds(clientProjectIds);
+    if (clientProjects) {
+      setSelectedProjectIds(new Set(clientProjects.map((cp) => cp.projectId)));
     }
-  }, [client, projects]);
+  }, [clientProjects]);
 
   const handleToggleProject = (projectId: string) => {
     setSelectedProjectIds((prev) => {
@@ -55,32 +55,24 @@ export function ClientProjectsDialog({ client, open, onOpenChange }: ClientProje
   };
 
   const handleSave = async () => {
-    if (!client || !projects) return;
+    if (!client || !clientProjects) return;
 
     setIsSaving(true);
     try {
+      const currentIds = new Set(clientProjects.map((cp) => cp.projectId));
       const updates: Promise<any>[] = [];
 
-      for (const project of projects) {
-        const wasAssigned = project.clientId === client.id;
-        const shouldBeAssigned = selectedProjectIds.has(project.id);
+      // Add new assignments
+      for (const projectId of selectedProjectIds) {
+        if (!currentIds.has(projectId)) {
+          updates.push(addProjectClient.mutateAsync({ projectId, clientId: client.id }));
+        }
+      }
 
-        if (wasAssigned && !shouldBeAssigned) {
-          // Unassign from this client
-          updates.push(
-            updateProject.mutateAsync({
-              id: project.id,
-              clientId: undefined,
-            })
-          );
-        } else if (!wasAssigned && shouldBeAssigned) {
-          // Assign to this client (may steal from another client)
-          updates.push(
-            updateProject.mutateAsync({
-              id: project.id,
-              clientId: client.id,
-            })
-          );
+      // Remove old assignments
+      for (const projectId of currentIds) {
+        if (!selectedProjectIds.has(projectId)) {
+          updates.push(removeProjectClient.mutateAsync({ projectId, clientId: client.id }));
         }
       }
 
@@ -108,7 +100,7 @@ export function ClientProjectsDialog({ client, open, onOpenChange }: ClientProje
         <DialogHeader>
           <DialogTitle>Manage Projects</DialogTitle>
           <DialogDescription>
-            Select which projects should be assigned to {client?.name}.
+            Select which projects {client?.name} should have access to.
           </DialogDescription>
         </DialogHeader>
 
@@ -125,7 +117,6 @@ export function ClientProjectsDialog({ client, open, onOpenChange }: ClientProje
             <div className="space-y-2">
               {projects?.map((project) => {
                 const isSelected = selectedProjectIds.has(project.id);
-                const isAssignedToOther = project.clientId && project.clientId !== client?.id;
 
                 return (
                   <div
@@ -148,11 +139,6 @@ export function ClientProjectsDialog({ client, open, onOpenChange }: ClientProje
                         {project.clientName}
                       </div>
                     </div>
-                    {isAssignedToOther && (
-                      <Badge variant="secondary" className="text-xs shrink-0">
-                        Assigned
-                      </Badge>
-                    )}
                   </div>
                 );
               })}

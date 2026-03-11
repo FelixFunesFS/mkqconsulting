@@ -31,8 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ClientSelector } from './ClientSelector';
+import { MultiClientSelector } from './MultiClientSelector';
 import { RevenueManager } from './RevenueManager';
+import { useProjectClients, useSyncProjectClients } from '@/hooks/useProjectClients';
 
 interface ProjectEditDialogProps {
   project: Project | null;
@@ -52,10 +53,13 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
   const updateProject = useUpdateProject();
   const { toast } = useToast();
 
+  const { data: projectClients } = useProjectClients(project?.id);
+  const syncClients = useSyncProjectClients();
+
   const [formData, setFormData] = useState({
     businessName: '',
     clientName: '',
-    clientId: null as string | null,
+    clientIds: [] as string[],
     status: 'discovery' as ProjectStatus,
     targetLaunchDate: null as Date | null,
     websiteUrl: '',
@@ -67,14 +71,14 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
       setFormData({
         businessName: project.businessName || '',
         clientName: project.clientName || '',
-        clientId: project.clientId || null,
+        clientIds: projectClients?.map((pc) => pc.clientId) ?? [],
         status: project.status,
         targetLaunchDate: project.targetLaunchDate ? new Date(project.targetLaunchDate) : null,
         websiteUrl: project.websiteUrl || '',
         notes: project.notes || '',
       });
     }
-  }, [project]);
+  }, [project, projectClients]);
 
   const handleSubmit = async () => {
     if (!project) return;
@@ -84,11 +88,17 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
         id: project.id,
         businessName: formData.businessName,
         clientName: formData.clientName,
-        clientId: formData.clientId || undefined,
+        clientId: formData.clientIds[0] || undefined,
         status: formData.status,
         targetLaunchDate: formData.targetLaunchDate?.toISOString().split('T')[0],
         websiteUrl: formData.websiteUrl || undefined,
         notes: formData.notes || undefined,
+      });
+
+      // Sync junction table
+      await syncClients.mutateAsync({
+        projectId: project.id,
+        clientIds: formData.clientIds,
       });
 
       toast({
@@ -135,10 +145,10 @@ export function ProjectEditDialog({ project, open, onOpenChange }: ProjectEditDi
           </div>
 
           <div className="space-y-2">
-            <Label>Assign to Client</Label>
-            <ClientSelector
-              value={formData.clientId || undefined}
-              onSelect={(clientId) => setFormData({ ...formData, clientId })}
+            <Label>Assign to Clients</Label>
+            <MultiClientSelector
+              value={formData.clientIds}
+              onChange={(clientIds) => setFormData({ ...formData, clientIds })}
             />
           </div>
 
