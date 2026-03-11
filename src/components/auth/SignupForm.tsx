@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 const signupSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -28,6 +28,7 @@ interface SignupFormProps {
 export function SignupForm({ onSuccess, onError }: SignupFormProps) {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const { register, handleSubmit, formState: { errors } } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema)
@@ -86,13 +87,23 @@ export function SignupForm({ onSuccess, onError }: SignupFormProps) {
       
       <div className="space-y-2">
         <Label htmlFor="signup-password">Password</Label>
-        <Input
-          id="signup-password"
-          type="password"
-          placeholder="••••••••"
-          {...register('password')}
-          disabled={isLoading}
-        />
+        <div className="relative">
+          <Input
+            id="signup-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            {...register('password')}
+            disabled={isLoading}
+            className="pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}
